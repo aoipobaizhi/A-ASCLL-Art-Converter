@@ -3,7 +3,10 @@
 
 这是我尝试用vibe coding工具的练手项目，我尝试使用ai工具让他更新的更好用。
 
-eatly↓
+eatly
+
+  ↓
+
   ├── ascii_art_early.py        ← 早期实验版
   
   ├── make_ascii_early.py       ← 早期实验版
