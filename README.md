@@ -5,8 +5,11 @@
 
 eatly↓
   ├── ascii_art_early.py        ← 早期实验版
+  
   ├── make_ascii_early.py       ← 早期实验版
+  
   ├── show_image_early.py       ← 早期实验版
+  
   └── leimu_ascii.html          ← 静态查看器
 
   起初只是想把一张图片转化为编码图，于是诞生了leimu_ascii~
