@@ -16,3 +16,8 @@ eatly
   └── leimu_ascii.html          ← 静态查看器
 
   起初只是想把一张图片转化为字符画，于是诞生了leimu_ascii~
+
+预计增加功能
+
+自动适配qq聊天框
+自动适配wx聊天框
