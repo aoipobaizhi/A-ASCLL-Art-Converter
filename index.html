@@ -11,7 +11,7 @@
   --text: #e0e0e0;
   --accent: #66aaff;
   --border: #2a2a4a;
-  --hover: #1f2f4a;
+
   --danger: #ff6b6b;
   --radius: 8px;
 }
@@ -102,12 +102,6 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%; background: var(--accent); cursor: pointer;
 }
 
-select {
-  width: 100%; padding: 8px 10px; border-radius: var(--radius);
-  background: var(--bg); color: var(--text); border: 1px solid var(--border);
-  font-size: 13px; cursor: pointer;
-}
-
 .style-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
 }
@@ -140,9 +134,16 @@ select {
 
 /* Preview */
 .preview-wrap {
-  flex: 1; overflow: auto; padding: 12px;
-  display: flex; align-items: flex-start; justify-content: center;
+  flex: 1; overflow: auto; padding: 32px;
+  display: block;
   height: 100%;
+  overscroll-behavior: none;
+  scroll-behavior: auto;
+  transition: padding-top 0.3s ease, padding-bottom 0.3s ease;
+}
+.preview-wrap > * {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Social links */
@@ -168,12 +169,13 @@ select {
   user-select: none; pointer-events: none;
 }
 .preview-wrap pre {
-  font-family: "Courier New", "Source Code Pro", "Consolas", "DejaVu Sans Mono", "Droid Sans Mono", "Noto Sans Mono", monospace;
-  line-height: 1.0; white-space: pre; margin: 0;
+  font-family: "Courier New", "Source Code Pro", "Consolas", "DejaVu Sans Mono", "Droid Sans Mono", "Noto Sans Mono", "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols", monospace;
+  line-height: 1.0; white-space: pre;
   font-size: 4px; letter-spacing: 0;
+  width: fit-content;
 }
 #canvasWrap {
-  margin: 0 auto; display: block;
+  width: fit-content;
 }
 #canvasWrap canvas {
   display: block;
@@ -229,6 +231,7 @@ body.fullscreen .tip-bar { display: none; }
 /* Mobile */
 @media (max-width: 768px) {
   body {
+    height: 100vh; overflow: hidden; /* lock viewport, prevent flex chain growth */
     padding-top: 48px;
     padding-bottom: 32px;
   }
@@ -241,7 +244,7 @@ body.fullscreen .tip-bar { display: none; }
   /* Panel: in normal flow, vertical collapse via max-height */
   .panel {
     position: relative; top: auto; left: auto; right: auto; bottom: auto;
-    width: 100%; min-width: auto; max-height: 55vh; overflow-y: auto;
+    width: 100%; min-width: auto; max-height: 45vh; overflow-y: auto;
     border-right: none; border-bottom: 1px solid var(--border);
     transition: max-height 0.3s ease, padding 0.3s ease, border 0.3s ease;
     z-index: auto;
@@ -257,10 +260,16 @@ body.fullscreen .tip-bar { display: none; }
 
   main {
     margin: 0; padding: 0;
-    flex: 1; flex-direction: column; height: auto;
+    flex: 1; flex-direction: column;
+    min-height: 0; overflow: hidden;
+    height: auto; /* override desktop fixed height */
     transition: none;
   }
-  .preview-wrap { min-height: 300px; height: auto; flex: 1; }
+  .preview-wrap {
+    flex: 1 1 0%; min-height: 0;
+    height: auto; /* override desktop height:100% */
+    padding: 16px;
+  }
 
   /* Reset desktop collapsed behavior on mobile */
   body.collapsed .panel { transform: none; }
@@ -319,6 +328,7 @@ body.fullscreen .tip-bar { display: none; }
         <button class="style-btn" data-style="edge" data-i18n="styleEdge">线稿素描</button>
         <button class="style-btn" data-style="numeric" data-i18n="styleNumeric">数字矩阵</button>
         <button class="style-btn" data-style="detail" data-i18n="styleDetail">密集细节</button>
+        <button class="style-btn" data-style="braille" data-i18n="styleBraille">盲文点阵 ⣿</button>
         <button class="style-btn" data-style="minimal" data-i18n="styleMinimal">极简线条</button>
       </div>
     </div>
@@ -376,7 +386,7 @@ body.fullscreen .tip-bar { display: none; }
         <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       </a>
     </div>
-    <div class="signature">AOIPO_BAIZHI</div>
+    <div class="signature">AOIPO_BAIZHI V1.2</div>
   </div>
 
   <!-- Preview -->
@@ -395,6 +405,7 @@ body.fullscreen .tip-bar { display: none; }
     <p data-i18n="infoDesc">一个基于浏览器的 ASCII 字符画生成器，支持上传图片、多种渲染风格、彩色模式、实时缩放拖拽。纯前端实现，无需服务器。</p>
     <p><b data-i18n="infoFeaturesLabel">功能：</b><span data-i18n="infoFeatures">6种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出TXT/ANSI/HTML</span></p>
     <p data-i18n="infoAuthor">作者：AOIPO_BAIZHI</p>
+    <p>版本：V1.2</p>
     <p>
       <a href="https://space.bilibili.com/3493130588391562" target="_blank">Bilibili</a> ·
       <a href="https://github.com/aoipobaizhi/A-ASCLL-Art-Converter" target="_blank">GitHub</a>
@@ -425,6 +436,7 @@ const I18N = {
     styleEdge: '线稿素描',
     styleNumeric: '数字矩阵',
     styleDetail: '密集细节',
+    styleBraille: '盲文点阵 ⣿',
     styleMinimal: '极简线条',
     widthLabel: '输出宽度',
     contrastLabel: '对比度',
@@ -439,7 +451,7 @@ const I18N = {
     resetBtn: '重置',
     infoTitle: 'ASCII Art Converter',
     infoDesc: '一个基于浏览器的 ASCII 字符画生成器，支持上传图片、多种渲染风格、彩色模式、实时缩放拖拽。纯前端实现，无需服务器。',
-    infoFeatures: '6种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出 TXT/ANSI/HTML',
+    infoFeatures: '7种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出 TXT/ANSI/HTML',
     infoFeaturesLabel: '功能：',
     infoAuthor: '作者：AOIPO_BAIZHI',
     closeBtn: '关闭',
@@ -475,6 +487,7 @@ const I18N = {
     styleEdge: 'Line Sketch',
     styleNumeric: 'Numeric Matrix',
     styleDetail: 'Dense Detail',
+    styleBraille: 'Braille Dots ⣿',
     styleMinimal: 'Minimal Lines',
     widthLabel: 'Output Width',
     contrastLabel: 'Contrast',
@@ -489,7 +502,7 @@ const I18N = {
     resetBtn: 'Reset',
     infoTitle: 'ASCII Art Converter',
     infoDesc: 'A browser-based ASCII art generator supporting image upload, multiple rendering styles, color mode, and real-time zoom & pan. Pure frontend, no server needed.',
-    infoFeatures: '6 rendering styles · Color/Text mode · Zoom & Pan · Export TXT/ANSI/HTML',
+    infoFeatures: '7 rendering styles · Color/Text mode · Zoom & Pan · Export TXT/ANSI/HTML',
     infoFeaturesLabel: 'Features: ',
     infoAuthor: 'Author: AOIPO_BAIZHI',
     closeBtn: 'Close',
@@ -565,7 +578,116 @@ const CHAR_SETS = {
   detail:    '$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,"^`\'. ',
   minimal:   '@#. ',
   edge:      '@%#*+=-:. ',
+  braille:   '⣿', // placeholder, braille uses special renderer
 };
+
+// Braille dot → bit mapping (Unicode standard layout)
+// Visual layout:  1  4
+//                  2  5
+//                  3  6
+//                  7  8
+const BRAILLE_BITS = [
+  [0, 0, 0x01], [1, 0, 0x08],
+  [0, 1, 0x02], [1, 1, 0x10],
+  [0, 2, 0x04], [1, 2, 0x20],
+  [0, 3, 0x40], [1, 3, 0x80],
+];
+
+function renderBraille(gray, w, h, invert) {
+  const charW = Math.floor(w / 2);
+  const charH = Math.floor(h / 4);
+  const lines = [];
+  for (let cy = 0; cy < charH; cy++) {
+    let line = '';
+    for (let cx = 0; cx < charW; cx++) {
+      let bits = 0;
+      for (const [dx, dy, bit] of BRAILLE_BITS) {
+        const px = cx * 2 + dx;
+        const py = cy * 4 + dy;
+        const val = gray[py * w + px];
+        if (invert ? val > 128 : val < 128) bits |= bit;
+      }
+      line += String.fromCodePoint(0x2800 + bits);
+    }
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function renderBrailleANSI(gray, colors, w, h, invert) {
+  const charW = Math.floor(w / 2);
+  const charH = Math.floor(h / 4);
+  const lines = [];
+  for (let cy = 0; cy < charH; cy++) {
+    let line = '', run = '';
+    let lastR = -1, lastG = -1, lastB = -1;
+    for (let cx = 0; cx < charW; cx++) {
+      let sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+      let bits = 0;
+      for (const [dx, dy, bit] of BRAILLE_BITS) {
+        const px = cx * 2 + dx;
+        const py = cy * 4 + dy;
+        const pi = py * w + px;
+        const ci = pi * 3;
+        sumR += colors[ci]; sumG += colors[ci + 1]; sumB += colors[ci + 2]; cnt++;
+        const val = gray[pi];
+        if (invert ? val > 128 : val < 128) bits |= bit;
+      }
+      const r = Math.round(sumR / cnt), g = Math.round(sumG / cnt), b = Math.round(sumB / cnt);
+      const ch = String.fromCodePoint(0x2800 + bits);
+      if (r !== lastR || g !== lastG || b !== lastB) {
+        line += run; run = '';
+        line += `\x1b[38;2;${r};${g};${b}m`;
+        lastR = r; lastG = g; lastB = b;
+      }
+      run += ch;
+    }
+    line += run;
+    if (lastR !== -1) line += '\x1b[0m';
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function renderBrailleHTML(gray, colors, w, h, invert) {
+  const charW = Math.floor(w / 2);
+  const charH = Math.floor(h / 4);
+  let html = `<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<style>
+  body { background: #111; font-family: "Courier New",Consolas,"Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols", monospace;
+         line-height: 1.2; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
+</style></head><body>
+`;
+  for (let cy = 0; cy < charH; cy++) {
+    let run = '';
+    let lastR = -1, lastG = -1, lastB = -1;
+    for (let cx = 0; cx < charW; cx++) {
+      let sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+      let bits = 0;
+      for (const [dx, dy, bit] of BRAILLE_BITS) {
+        const px = cx * 2 + dx;
+        const py = cy * 4 + dy;
+        const pi = py * w + px;
+        const ci = pi * 3;
+        sumR += colors[ci]; sumG += colors[ci + 1]; sumB += colors[ci + 2]; cnt++;
+        const val = gray[pi];
+        if (invert ? val > 128 : val < 128) bits |= bit;
+      }
+      const r = Math.round(sumR / cnt), g = Math.round(sumG / cnt), b = Math.round(sumB / cnt);
+      if (r !== lastR || g !== lastG || b !== lastB) {
+        if (run) html += run.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
+        run = '';
+        html += `<span style="color:rgb(${r},${g},${b})">`;
+        lastR = r; lastG = g; lastB = b;
+      }
+      run += String.fromCodePoint(0x2800 + bits);
+    }
+    html += run.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>\n';
+  }
+  html += '</body></html>';
+  return html;
+}
 
 function convertToGrayscale(imageData) {
   const gray = new Uint8Array(imageData.width * imageData.height);
@@ -577,15 +699,15 @@ function convertToGrayscale(imageData) {
 }
 
 function extractColors(imageData) {
-  const w = imageData.width, h = imageData.height;
-  const colors = new Uint8Array(w * h * 3);
+  const count = imageData.width * imageData.height;
+  const colors = new Uint8Array(count * 3);
   const data = imageData.data;
   for (let i = 0, j = 0; i < data.length; i += 4, j += 3) {
     colors[j] = data[i];
     colors[j + 1] = data[i + 1];
     colors[j + 2] = data[i + 2];
   }
-  return { colors, w, h };
+  return colors;
 }
 
 function applyContrast(gray, factor) {
@@ -595,6 +717,13 @@ function applyContrast(gray, factor) {
     result[i] = Math.max(0, Math.min(255, Math.round(v)));
   }
   return result;
+}
+
+function applyColorContrast(colors, factor) {
+  for (let i = 0; i < colors.length; i++) {
+    let v = (colors[i] - 128) * factor + 128;
+    colors[i] = Math.max(0, Math.min(255, Math.round(v)));
+  }
 }
 
 function detectEdges(gray, w, h) {
@@ -616,46 +745,124 @@ function detectEdges(gray, w, h) {
 
 function processImage(image, targetWidth, style, contrast, invert, colorMode) {
   const aspect = image.height / image.width;
-  const targetHeight = Math.floor(targetWidth * aspect * 0.45);
-  if (targetHeight < 1) return { plain: '', width: 0, height: 0, gray: null, colors: null, chars: '' };
+  const isBraille = style === 'braille';
+
+  // Braille: each char covers 2×4 pixels → sample at 2× width
+  const sampleW = isBraille ? targetWidth * 2 : targetWidth;
+  const sampleH = isBraille
+    ? Math.floor(targetWidth * 2 * aspect)
+    : Math.floor(targetWidth * aspect * 0.45);
+  if (sampleH < 1) return { plain: '', width: 0, height: 0, gray: null, colors: null, chars: '' };
+
+  // Stepped downsampling: halve repeatedly to preserve detail
+  let srcW = image.width;
+  let srcH = image.height;
+  let srcCanvas = document.createElement('canvas');
+  srcCanvas.width = srcW;
+  srcCanvas.height = srcH;
+  let srcCtx = srcCanvas.getContext('2d');
+  srcCtx.drawImage(image, 0, 0);
+
+  while (srcW > sampleW * 2 && srcH > sampleH * 2) {
+    const halfW = Math.floor(srcW / 2);
+    const halfH = Math.floor(srcH / 2);
+    const halfCanvas = document.createElement('canvas');
+    halfCanvas.width = halfW;
+    halfCanvas.height = halfH;
+    const halfCtx = halfCanvas.getContext('2d');
+    halfCtx.imageSmoothingEnabled = true;
+    halfCtx.imageSmoothingQuality = 'high';
+    halfCtx.drawImage(srcCanvas, 0, 0, halfW, halfH);
+    srcCanvas = halfCanvas;
+    srcW = halfW;
+    srcH = halfH;
+  }
 
   const canvas = document.createElement('canvas');
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
+  canvas.width = sampleW;
+  canvas.height = sampleH;
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(srcCanvas, 0, 0, sampleW, sampleH);
 
-  const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+  const imageData = ctx.getImageData(0, 0, sampleW, sampleH);
   let gray = convertToGrayscale(imageData);
 
   const useColor = colorMode && style !== 'edge';
 
   if (style === 'edge') {
-    gray = detectEdges(gray, targetWidth, targetHeight);
+    gray = detectEdges(gray, sampleW, sampleH);
     contrast = Math.max(contrast, 1.5);
   }
   gray = applyContrast(gray, contrast);
 
+  // Braille rendering path
+  if (isBraille) {
+    const charW = Math.floor(sampleW / 2);
+    const charH = Math.floor(sampleH / 4);
+    if (charW < 1 || charH < 1) return { plain: '', width: 0, height: 0, gray: null, colors: null, chars: '' };
+
+    const plain = renderBraille(gray, sampleW, sampleH, invert);
+
+    let ansi = null, html = null, colors = null, charBits = null;
+    if (useColor) {
+      const colorData = extractColors(imageData);
+      applyColorContrast(colorData, contrast);
+      // Build per-character color/gray data for canvas rendering
+      charBits = new Uint8Array(charW * charH);
+      const charColors = new Uint8Array(charW * charH * 3);
+      for (let cy = 0; cy < charH; cy++) {
+        for (let cx = 0; cx < charW; cx++) {
+          let bits = 0, sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+          for (const [dx, dy, bit] of BRAILLE_BITS) {
+            const px = cx * 2 + dx;
+            const py = cy * 4 + dy;
+            const pi = py * sampleW + px;
+            const ci = pi * 3;
+            const val = gray[pi];
+            if (invert ? val > 128 : val < 128) bits |= bit;
+            sumR += colorData[ci];
+            sumG += colorData[ci + 1];
+            sumB += colorData[ci + 2];
+            cnt++;
+          }
+          const i = cy * charW + cx;
+          charBits[i] = bits;
+          const ci3 = i * 3;
+          charColors[ci3] = Math.round(sumR / cnt);
+          charColors[ci3 + 1] = Math.round(sumG / cnt);
+          charColors[ci3 + 2] = Math.round(sumB / cnt);
+        }
+      }
+      colors = charColors;
+      ansi = renderBrailleANSI(gray, colorData, sampleW, sampleH, invert);
+      html = renderBrailleHTML(gray, colorData, sampleW, sampleH, invert);
+    }
+
+    return { plain, ansi, html, gray: charBits, colors, width: charW, height: charH, chars: '' };
+  }
+
+  // Normal rendering path
   let chars = CHAR_SETS[style] || CHAR_SETS.classic;
   if (invert) {
     chars = chars.split('').reverse().join('');
   }
 
-  // Build plain text
-  const plain = renderPlain(gray, targetWidth, targetHeight, chars);
+  const plain = renderPlain(gray, sampleW, sampleH, chars);
 
-  // Build ANSI if color mode
   let ansi = null;
   let colors = null;
   let html = null;
   if (useColor) {
     const colorData = extractColors(imageData);
-    colors = colorData.colors;
-    ansi = renderANSI(gray, colors, targetWidth, targetHeight, chars);
-    html = renderHTML(gray, colors, targetWidth, targetHeight, chars);
+    applyColorContrast(colorData, contrast);
+    colors = colorData;
+    ansi = renderANSI(gray, colors, sampleW, sampleH, chars);
+    html = renderHTML(gray, colors, sampleW, sampleH, chars);
   }
 
-  return { plain, ansi, html, gray, colors, width: targetWidth, height: targetHeight, chars };
+  return { plain, ansi, html, gray, colors, width: sampleW, height: sampleH, chars };
 }
 
 function renderPlain(gray, w, h, chars) {
@@ -703,8 +910,8 @@ function renderHTML(gray, colors, w, h, chars) {
   let html = `<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <style>
-  body { background: #111; font-family: "Courier New",Consolas,monospace;
-         line-height: 1.0; white-space: pre; margin: 16px; font-size: 6px; }
+  body { background: #111; font-family: "Courier New",Consolas,"Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols", monospace;
+         line-height: 1.2; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
 </style></head><body>
 `;
   for (let y = 0; y < h; y++) {
@@ -716,7 +923,7 @@ function renderHTML(gray, colors, w, h, chars) {
       const ci = i * 3;
       const r = colors[ci], g = colors[ci + 1], b = colors[ci + 2];
       if (r !== lastR || g !== lastG || b !== lastB) {
-        if (run) html += run.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        if (run) html += run.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
         run = '';
         html += `<span style="color:rgb(${r},${g},${b})">`;
         lastR = r; lastG = g; lastB = b;
@@ -733,7 +940,7 @@ function renderHTML(gray, colors, w, h, chars) {
 // Canvas-based color rendering — character masks + ImageData
 
 function drawToCanvas(canvas, gray, colors, width, height, chars, zoomScale) {
-  const FONT = 'bold 16px "Courier New","Source Code Pro","Consolas","Droid Sans Mono","Noto Sans Mono",monospace';
+  const FONT = 'bold 16px "Courier New","Source Code Pro","Consolas","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace';
   const offC = document.createElement('canvas');
   const offX = offC.getContext('2d');
   offX.font = FONT;
@@ -810,6 +1017,82 @@ function drawToCanvas(canvas, gray, colors, width, height, chars, zoomScale) {
   canvas.style.height = Math.round(ch * z) + 'px';
 }
 
+// Braille canvas renderer — draws dot patterns directly, no font dependency
+function drawBrailleToCanvas(canvas, bitsArray, colors, charW, charH, zoomScale) {
+  const CELL_W = 10;
+  const CELL_H = 20;
+  const DOT_R = 1.9;
+
+  // Dot center positions within a cell for the 8 braille dots
+  const dotCX = [CELL_W * 0.28, CELL_W * 0.72];
+  const dotCY = [CELL_H * 0.13, CELL_H * 0.38, CELL_H * 0.63, CELL_H * 0.88];
+
+  // BRAILLE_BITS order: [col, row, bit]
+  // Build per-dot pixel masks, indexed by dot index 0..7
+  const dotMasks = [];
+  for (let di = 0; di < 8; di++) {
+    const [col, row] = BRAILLE_BITS[di];
+    const cx = Math.round(dotCX[col]);
+    const cy = Math.round(dotCY[row]);
+    const mask = [];
+    const r = Math.ceil(DOT_R);
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy <= DOT_R * DOT_R) {
+          const mx = cx + dx;
+          const my = cy + dy;
+          if (mx >= 0 && mx < CELL_W && my >= 0 && my < CELL_H) {
+            mask.push(mx, my);
+          }
+        }
+      }
+    }
+    dotMasks.push(mask);
+  }
+
+  const cw = charW * CELL_W;
+  const ch = charH * CELL_H;
+  const ctx = canvas.getContext('2d');
+  canvas.width = cw;
+  canvas.height = ch;
+
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, cw, ch);
+
+  const imageData = ctx.getImageData(0, 0, cw, ch);
+  const out = imageData.data;
+
+  for (let y = 0; y < charH; y++) {
+    for (let x = 0; x < charW; x++) {
+      const i = y * charW + x;
+      const bits = bitsArray[i];
+      const ci = i * 3;
+      const r = colors[ci], g = colors[ci + 1], b = colors[ci + 2];
+      const px = x * CELL_W;
+      const py = y * CELL_H;
+      for (let di = 0; di < 8; di++) {
+        if (bits & BRAILLE_BITS[di][2]) {
+          const mask = dotMasks[di];
+          for (let mi = 0; mi < mask.length; mi += 2) {
+            const mx = mask[mi];
+            const my = mask[mi + 1];
+            const outI = ((py + my) * cw + (px + mx)) * 4;
+            out[outI] = r;
+            out[outI + 1] = g;
+            out[outI + 2] = b;
+            out[outI + 3] = 255;
+          }
+        }
+      }
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  const z = zoomScale / 4;
+  canvas.style.width = Math.round(cw * z) + 'px';
+  canvas.style.height = Math.round(ch * z) + 'px';
+}
+
 // ============================================================
 // UI State
 // ============================================================
@@ -833,7 +1116,10 @@ const colorBtns = $('colorBtns');
 // Panel toggle
 $('panelToggle').addEventListener('click', () => {
   document.body.classList.toggle('collapsed');
-  setTimeout(updateGrabCursor, 350); // after transition
+  // Start margin transition early (syncs with panel animation)
+  setTimeout(() => updateContentAlignment(), 40);
+  // Final alignment after panel transition settles + re-check cursor
+  setTimeout(() => { updateGrabCursor(); updateContentAlignment(); }, 350);
 });
 
 // Fullscreen
@@ -930,9 +1216,17 @@ $('contrastSlider').addEventListener('input', function() {
 });
 function applyZoom(val) {
   const v = parseFloat(val).toFixed(1);
+  const vn = parseFloat(v);
   $('fontVal').textContent = v + 'px';
+  // Save center ratio for zoom-to-center
+  const sw = previewWrap.scrollWidth || 1;
+  const sh = previewWrap.scrollHeight || 1;
+  const cw2 = previewWrap.clientWidth;
+  const ch2 = previewWrap.clientHeight;
+  const rx = (previewWrap.scrollLeft + cw2 / 2) / sw;
+  const ry = (previewWrap.scrollTop + ch2 / 2) / sh;
   // Text mode: change font-size directly (layout-aware, no overflow)
-  preview.style.fontSize = Math.max(1, parseFloat(v)) + 'px';
+  preview.style.fontSize = Math.max(1, vn) + 'px';
   // Color mode: scale canvas display size
   if ($('colorCheck').checked && lastResult.colors) {
     const z = v / 4;
@@ -943,11 +1237,43 @@ function applyZoom(val) {
       previewCanvas.style.height = Math.round(ch * z) + 'px';
     }
   }
-  setTimeout(updateGrabCursor, 50);
+  // Dynamic padding: stronger for color mode (canvas), milder for text mode (pre)
+  const isMobile = window.innerWidth <= 768;
+  const basePad = isMobile ? 16 : 32;
+  const colorMode = $('colorCheck').checked && !!lastResult.colors;
+  const scale = colorMode ? (isMobile ? 5 : 10) : (isMobile ? 3 : 6);
+  const extra = Math.max(0, Math.round(Math.pow(Math.max(0, vn - (colorMode ? 3 : 4)), colorMode ? 1.8 : 1.5) * scale));
+  // Disable padding transition during zoom — instant response, no animation lag
+  previewWrap.style.transition = 'none';
+  previewWrap.style.padding = (basePad + extra) + 'px';
+  // Force synchronous layout read → browser computes new size immediately, no paint gap
+  let nsw = previewWrap.scrollWidth || 1;
+  let nsh = previewWrap.scrollHeight || 1;
+  previewWrap.scrollLeft = Math.max(0, rx * nsw - previewWrap.clientWidth / 2);
+  previewWrap.scrollTop = Math.max(0, ry * nsh - previewWrap.clientHeight / 2);
+  updateGrabCursor(); updateContentAlignment();
+  // updateContentAlignment may change padding → re-snap center
+  nsw = previewWrap.scrollWidth || 1;
+  nsh = previewWrap.scrollHeight || 1;
+  previewWrap.scrollLeft = Math.max(0, rx * nsw - previewWrap.clientWidth / 2);
+  previewWrap.scrollTop = Math.max(0, ry * nsh - previewWrap.clientHeight / 2);
+  // Re-enable padding transition for smooth toolbar-toggle centering
+  previewWrap.style.transition = '';
 }
 $('fontSlider').addEventListener('input', function() { applyZoom(this.value); });
 $('normalCheck').addEventListener('change', refresh);
-$('colorCheck').addEventListener('change', refresh);
+let normalZoom = 4; // saved zoom for restoring after color mode
+$('colorCheck').addEventListener('change', function() {
+  if (this.checked) {
+    normalZoom = parseFloat($('fontSlider').value);
+    $('fontSlider').value = 2;
+    applyZoom(2);
+  } else {
+    $('fontSlider').value = normalZoom;
+    applyZoom(normalZoom);
+  }
+  refresh();
+});
 
 function scheduleRefresh() {
   clearTimeout(timer);
@@ -1000,13 +1326,17 @@ function refresh() {
 
   lastResult = processImage(currentImage, width, currentStyle, contrast, invert, colorMode);
   updateTip(lastResult.width, lastResult.height, colorMode && !!lastResult.colors);
-  setTimeout(updateGrabCursor, 50); // wait for layout to settle
+  setTimeout(() => { updateGrabCursor(); updateContentAlignment(); }, 80); // wait for layout to settle
 
   if (colorMode && lastResult.colors) {
-    // Color mode: draw to canvas with device-aware font metrics
     const zoom = parseFloat($('fontSlider').value);
-    drawToCanvas(previewCanvas, lastResult.gray, lastResult.colors,
-                 lastResult.width, lastResult.height, lastResult.chars, zoom);
+    if (currentStyle === 'braille') {
+      drawBrailleToCanvas(previewCanvas, lastResult.gray, lastResult.colors,
+                   lastResult.width, lastResult.height, zoom);
+    } else {
+      drawToCanvas(previewCanvas, lastResult.gray, lastResult.colors,
+                   lastResult.width, lastResult.height, lastResult.chars, zoom);
+    }
     preview.style.display = 'none';
     previewPlaceholder.style.display = 'none';
     $('canvasWrap').style.display = '';
@@ -1106,16 +1436,73 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
-// Drag-to-pan
-let dragging = false, panX = 0, panY = 0;
+// Drag-to-pan with spring-back overscroll (transform-based, works everywhere)
+let dragging = false, panX = 0, panY = 0, springTimer = 0;
+const OVERSCROLL = 200;
+
+function getSpringChild() {
+  if ($('canvasWrap').style.display !== 'none') return $('canvasWrap');
+  if (preview.style.display !== 'none') return preview;
+  return null;
+}
+
+function applyOverscroll(dx, dy) {
+  const child = getSpringChild();
+  if (child) {
+    clearTimeout(springTimer);
+    child.style.transition = 'none';
+    child.style.transform = `translate(${dx}px, ${dy}px)`;
+  }
+}
+
+function releaseOverscroll() {
+  const child = getSpringChild();
+  if (child) {
+    child.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    child.style.transform = 'translate(0, 0)';
+    const el = child;
+    clearTimeout(springTimer);
+    springTimer = setTimeout(() => {
+      el.style.transition = '';
+      el.style.transform = '';
+    }, 460);
+  }
+}
+
+function doPan(clientX, clientY) {
+  const maxX = Math.max(0, previewWrap.scrollWidth - previewWrap.clientWidth);
+  const maxY = Math.max(0, previewWrap.scrollHeight - previewWrap.clientHeight);
+  let sx = panX - clientX;
+  let sy = panY - clientY;
+  let osX = 0, osY = 0;
+  const D = 0.7; // resistance damping for overscroll
+  // Left edge: finger drags right past scrollLeft=0 → content shifts right (positive osX)
+  if (sx < 0) { osX = Math.min(-sx * D, OVERSCROLL); sx = 0; }
+  // Right edge: finger drags left past maxX → content shifts left (negative osX)
+  else if (sx > maxX) { osX = Math.max(-(sx - maxX) * D, -OVERSCROLL); sx = maxX; }
+  // Top edge: finger drags down past scrollTop=0 → content shifts down (positive osY)
+  if (sy < 0) { osY = Math.min(-sy * D, OVERSCROLL); sy = 0; }
+  // Bottom edge: finger drags up past maxY → content shifts up (negative osY)
+  else if (sy > maxY) { osY = Math.max(-(sy - maxY) * D, -OVERSCROLL); sy = maxY; }
+  previewWrap.scrollLeft = Math.max(0, Math.min(maxX, sx));
+  previewWrap.scrollTop = Math.max(0, Math.min(maxY, sy));
+  applyOverscroll(osX, osY);
+}
+
+// Mouse drag
 previewWrap.addEventListener('mousedown', (e) => {
   if (e.target === previewWrap || e.target === preview || e.target === previewCanvas || e.target.closest('#canvasWrap')) {
-    // Only drag if content overflows (scrollable)
     if (previewWrap.scrollWidth <= previewWrap.clientWidth && previewWrap.scrollHeight <= previewWrap.clientHeight) return;
     e.preventDefault();
     dragging = true;
     panX = e.clientX + previewWrap.scrollLeft;
     panY = e.clientY + previewWrap.scrollTop;
+    // absorb running spring transform (account for 0.5 damping in doPan)
+    const child = getSpringChild();
+    if (child && child.style.transform) {
+      const m = child.style.transform.match(/translate\(([^)]+)\)/);
+      if (m) { const [dx, dy] = m[1].split(',').map(s => parseFloat(s)); panX -= (dx || 0) / 0.7; panY -= (dy || 0) / 0.7; }
+    }
     previewWrap.classList.add('grabbing');
     previewWrap.classList.remove('grab');
   }
@@ -1123,22 +1510,51 @@ previewWrap.addEventListener('mousedown', (e) => {
 window.addEventListener('mousemove', (e) => {
   if (!dragging) return;
   e.preventDefault();
-  previewWrap.scrollLeft = panX - e.clientX;
-  previewWrap.scrollTop = panY - e.clientY;
+  doPan(e.clientX, e.clientY);
 });
 window.addEventListener('mouseup', () => {
   if (dragging) {
     dragging = false;
     previewWrap.classList.remove('grabbing');
     previewWrap.classList.add('grab');
+    releaseOverscroll();
   }
 });
+
 // Show grab cursor when content overflows
+function updateContentAlignment() {
+  const child = getSpringChild();
+  if (!child) return;
+  const isMobile = window.innerWidth <= 768;
+  const collapsed = document.body.classList.contains('collapsed');
+  const sidePad = parseFloat(getComputedStyle(previewWrap).paddingLeft) || 32;
+
+  if (isMobile && !collapsed) {
+    // Mobile expanded: top-aligned — equal padding all sides
+    previewWrap.style.paddingTop = sidePad + 'px';
+    previewWrap.style.paddingBottom = sidePad + 'px';
+    return;
+  }
+
+  // Calculate centering via extra top/bottom padding
+  const childH = child.offsetHeight;
+  const wrapH = previewWrap.clientHeight;
+  const contentH = Math.max(0, wrapH - sidePad * 2);
+  const available = Math.max(0, contentH - childH);
+
+  // Desktop: 50% = center. Mobile collapsed: 35% = upper-middle
+  const ratio = (isMobile && collapsed) ? 0.35 : 0.5;
+  const topExtra = Math.round(available * ratio);
+  const botExtra = available - topExtra;
+
+  previewWrap.style.paddingTop = (sidePad + topExtra) + 'px';
+  previewWrap.style.paddingBottom = (sidePad + botExtra) + 'px';
+}
 const updateGrabCursor = () => {
   const overflow = previewWrap.scrollWidth > previewWrap.clientWidth || previewWrap.scrollHeight > previewWrap.clientHeight;
   previewWrap.classList.toggle('grab', overflow);
 };
-window.addEventListener('resize', updateGrabCursor);
+window.addEventListener('resize', () => { updateGrabCursor(); updateContentAlignment(); });
 
 // Wheel zoom on preview area
 previewWrap.addEventListener('wheel', (e) => {
@@ -1151,17 +1567,47 @@ previewWrap.addEventListener('wheel', (e) => {
   updateGrabCursor();
 }, { passive: false });
 
-// Pinch-to-zoom for touch devices
+// Touch: single-finger pan with spring overscroll + two-finger pinch zoom
 let lastPinchDist = 0;
+let touchId = null;
 previewWrap.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
+    // Pinch start — cancel any pan
+    dragging = false; touchId = null;
+    previewWrap.classList.remove('grabbing');
     lastPinchDist = Math.hypot(
       e.touches[0].clientX - e.touches[1].clientX,
       e.touches[0].clientY - e.touches[1].clientY
     );
+  } else if (e.touches.length === 1 && !dragging) {
+    // Start single-finger pan (only if content overflows)
+    if (previewWrap.scrollWidth <= previewWrap.clientWidth && previewWrap.scrollHeight <= previewWrap.clientHeight) return;
+    dragging = true;
+    touchId = e.touches[0].identifier;
+    panX = e.touches[0].clientX + previewWrap.scrollLeft;
+    panY = e.touches[0].clientY + previewWrap.scrollTop;
+    const child = getSpringChild();
+    if (child && child.style.transform) {
+      const m = child.style.transform.match(/translate\(([^)]+)\)/);
+      if (m) { const [dx, dy] = m[1].split(',').map(s => parseFloat(s)); panX -= (dx || 0) / 0.7; panY -= (dy || 0) / 0.7; }
+    }
+    previewWrap.classList.add('grabbing');
+    previewWrap.classList.remove('grab');
   }
-}, { passive: true });
+}, { passive: false });
 previewWrap.addEventListener('touchmove', (e) => {
+  // Single-finger pan
+  if (dragging && touchId !== null) {
+    for (let i = 0; i < e.touches.length; i++) {
+      if (e.touches[i].identifier === touchId) {
+        doPan(e.touches[i].clientX, e.touches[i].clientY);
+        e.preventDefault();
+        return;
+      }
+    }
+    return;
+  }
+  // Two-finger pinch zoom
   if (e.touches.length === 2 && lastPinchDist > 0) {
     const dist = Math.hypot(
       e.touches[0].clientX - e.touches[1].clientX,
@@ -1176,8 +1622,24 @@ previewWrap.addEventListener('touchmove', (e) => {
       lastPinchDist = dist;
     }
   }
-}, { passive: true });
-previewWrap.addEventListener('touchend', () => { lastPinchDist = 0; });
+}, { passive: false });
+previewWrap.addEventListener('touchend', (e) => {
+  // Check if our tracked touch ended
+  if (touchId !== null) {
+    let found = false;
+    for (let i = 0; i < e.touches.length; i++) {
+      if (e.touches[i].identifier === touchId) { found = true; break; }
+    }
+    if (!found) {
+      dragging = false;
+      touchId = null;
+      previewWrap.classList.remove('grabbing');
+      previewWrap.classList.add('grab');
+      releaseOverscroll();
+    }
+  }
+  lastPinchDist = 0;
+});
 
 // Initial render
 applyZoom($('fontSlider').value);
