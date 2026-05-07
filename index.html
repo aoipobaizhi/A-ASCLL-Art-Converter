@@ -24,6 +24,16 @@ body {
 
 header h1 { font-size: 20px; font-weight: 600; }
 header .sub { color: #999; font-size: 13px; margin-left: 8px; }
+.header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+#infoBtn, #fullscreenBtn { display: none; }  /* desktop: only lang toggle visible */
+.header-btn {
+  width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: 0.15s; padding: 0;
+}
+.header-btn:hover { border-color: var(--accent); color: var(--accent); }
+.header-btn.lang-btn { width: auto; padding: 0 8px; font-size: 12px; font-weight: 600; }
 
 .panel-toggle {
   width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border);
@@ -151,6 +161,12 @@ select {
 .signature { font-size: 11px; color: #666; text-align: center; padding-top: 8px; }
 .preview-wrap.grab { cursor: grab; }
 .preview-wrap.grabbing { cursor: grabbing; }
+.preview-placeholder {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%; font-size: 15px; color: #555;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  user-select: none; pointer-events: none;
+}
 .preview-wrap pre {
   font-family: "Courier New", "Source Code Pro", "Consolas", "DejaVu Sans Mono", "Droid Sans Mono", "Noto Sans Mono", monospace;
   line-height: 1.0; white-space: pre; margin: 0;
@@ -172,6 +188,33 @@ select {
 }
 .toast.show { opacity: 1; }
 
+/* Info overlay */
+.info-overlay {
+  position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.info-overlay.show { opacity: 1; pointer-events: auto; }
+.info-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; max-width: 420px; width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.info-modal h2 { font-size: 16px; margin-bottom: 12px; }
+.info-modal p { font-size: 13px; color: #aaa; line-height: 1.6; margin-bottom: 8px; }
+.info-modal .close-btn {
+  margin-top: 16px; padding: 8px 20px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  cursor: pointer; font-size: 13px; transition: 0.15s;
+}
+.info-modal .close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Fullscreen */
+body.fullscreen main { margin-top: 0; margin-left: 0; height: 100vh; }
+body.fullscreen header { display: none; }
+body.fullscreen .panel { display: none; }
+body.fullscreen .tip-bar { display: none; }
+
 /* Tip bar */
 .tip-bar {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -185,87 +228,143 @@ select {
 
 /* Mobile */
 @media (max-width: 768px) {
-  header { position: static; height: auto; }
-  .panel { position: static; width: 100%; min-width: auto; border-right: none; border-bottom: 1px solid var(--border); }
-  main { margin: 0; height: auto; flex-direction: column; }
-  .preview-wrap { min-height: 400px; height: auto; }
+  body {
+    padding-top: 48px;
+    padding-bottom: 32px;
+  }
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 48px; padding: 0 12px;
+  }
+  header h1 { font-size: 16px; }
+
+  /* Panel: in normal flow, vertical collapse via max-height */
+  .panel {
+    position: relative; top: auto; left: auto; right: auto; bottom: auto;
+    width: 100%; min-width: auto; max-height: 55vh; overflow-y: auto;
+    border-right: none; border-bottom: 1px solid var(--border);
+    transition: max-height 0.3s ease, padding 0.3s ease, border 0.3s ease;
+    z-index: auto;
+  }
+  body.collapsed .panel {
+    max-height: 0; padding-top: 0; padding-bottom: 0;
+    border-bottom: none; overflow: hidden;
+  }
+
+  /* Chevron: point up when expanded, down when collapsed */
+  .panel-toggle svg { transform: rotate(-90deg); }
+  body.collapsed .panel-toggle svg { transform: rotate(90deg); }
+
+  main {
+    margin: 0; padding: 0;
+    flex: 1; flex-direction: column; height: auto;
+    transition: none;
+  }
+  .preview-wrap { min-height: 300px; height: auto; flex: 1; }
+
+  /* Reset desktop collapsed behavior on mobile */
+  body.collapsed .panel { transform: none; }
+  body.collapsed main { margin-left: 0; }
+
+  /* Hide subtitle on mobile */
+  header .sub { display: none; }
+
+  /* Show header-right buttons only on mobile */
+  .header-right { display: flex; }
+  #infoBtn, #fullscreenBtn { display: flex; }
+
+  /* Hide social links & signature on mobile — save preview space */
+  .social-links { display: none; }
+  .signature { display: none; }
+
+  /* Tighter panel padding on mobile */
+  .panel { padding: 10px 12px; }
+
+  /* Fullscreen on mobile */
+  body.fullscreen { padding-top: 0; padding-bottom: 0; }
+  body.fullscreen main { margin: 0; height: 100vh; }
 }
 </style>
 </head>
 <body>
 
 <header>
-  <div style="display:flex;align-items:center;gap:12px">
+  <div style="display:flex;align-items:center;gap:12px;flex:1">
     <button class="panel-toggle" id="panelToggle" title="收起/展开工具栏">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
     </button>
-    <div><h1>ASCII Art Converter<span class="sub">上传图片 → 字符画</span></h1></div>
+    <div><h1><span data-i18n="title">ASCII Art Converter</span><span class="sub" data-i18n="subtitle">上传图片 → 字符画</span></h1></div>
+    <div class="header-right">
+      <button class="header-btn lang-btn" id="langToggle" title="切换语言">EN</button>
+      <button class="header-btn" id="infoBtn" title="工具信息">ⓘ</button>
+      <button class="header-btn" id="fullscreenBtn" title="全屏">⛶</button>
+    </div>
   </div>
 </header>
 
 <main>
   <div class="panel">
     <!-- Upload -->
-    <div class="drop-zone" id="dropZone">
+    <div class="drop-zone" id="dropZone" data-i18n="dropZone">
       拖拽图片到此处 或 点击选择文件
       <input type="file" id="fileInput" accept="image/*">
     </div>
 
     <!-- Style selector -->
     <div class="control-group">
-      <label>渲染风格</label>
+      <label data-i18n="styleLabel">渲染风格</label>
       <div class="style-grid" id="styleGrid">
-        <button class="style-btn active" data-style="classic">经典 ASCII</button>
-        <button class="style-btn" data-style="block">方块像素 █▓▒░</button>
-        <button class="style-btn" data-style="edge">线稿素描</button>
-        <button class="style-btn" data-style="numeric">数字矩阵</button>
-        <button class="style-btn" data-style="detail">密集细节</button>
-        <button class="style-btn" data-style="minimal">极简线条</button>
+        <button class="style-btn active" data-style="classic" data-i18n="styleClassic">经典 ASCII</button>
+        <button class="style-btn" data-style="block" data-i18n="styleBlock">方块像素 █▓▒░</button>
+        <button class="style-btn" data-style="edge" data-i18n="styleEdge">线稿素描</button>
+        <button class="style-btn" data-style="numeric" data-i18n="styleNumeric">数字矩阵</button>
+        <button class="style-btn" data-style="detail" data-i18n="styleDetail">密集细节</button>
+        <button class="style-btn" data-style="minimal" data-i18n="styleMinimal">极简线条</button>
       </div>
     </div>
 
     <!-- Width -->
     <div class="control-group">
-      <label>输出宽度 <span class="value" id="widthVal">120</span></label>
+      <label><span data-i18n="widthLabel">输出宽度</span> <span class="value" id="widthVal">120</span></label>
       <input type="range" id="widthSlider" min="40" max="500" value="120" step="10">
     </div>
 
     <!-- Contrast -->
     <div class="control-group">
-      <label>对比度 <span class="value" id="contrastVal">2.0</span></label>
+      <label><span data-i18n="contrastLabel">对比度</span> <span class="value" id="contrastVal">2.0</span></label>
       <input type="range" id="contrastSlider" min="0.5" max="4" value="2" step="0.1">
     </div>
 
     <!-- Font size -->
     <div class="control-group">
-      <label>预览字体 <span class="value" id="fontVal">4px</span></label>
+      <label><span data-i18n="fontLabel">预览字体</span> <span class="value" id="fontVal">4px</span></label>
       <input type="range" id="fontSlider" min="0.5" max="14" value="4" step="0.5">
     </div>
 
     <!-- Normal (non-inverted) -->
     <div class="check-row">
       <input type="checkbox" id="normalCheck">
-      <label for="normalCheck">原色（深色字符 / 浅色背景）</label>
+      <label for="normalCheck" data-i18n="invertCheck">反色（深色字符 / 浅色背景）</label>
     </div>
 
     <!-- Color -->
     <div class="check-row">
       <input type="checkbox" id="colorCheck">
-      <label for="colorCheck">彩色模式（保留原图颜色）</label>
+      <label for="colorCheck"><span data-i18n="colorCheck">彩色模式（保留原图颜色）</span></label>
     </div>
 
     <!-- Buttons -->
     <div class="btn-row">
-      <button class="btn btn-primary" id="copyBtn">复制</button>
-      <button class="btn btn-secondary" id="downloadBtn">下载 .txt</button>
+      <button class="btn btn-primary" id="copyBtn" data-i18n="copyBtn">复制</button>
+      <button class="btn btn-secondary" id="downloadBtn" data-i18n="downloadBtn">下载 .txt</button>
     </div>
     <div class="btn-row" id="colorBtns" style="display:none">
-      <button class="btn btn-primary" id="copyAnsiBtn">复制 ANSI</button>
-      <button class="btn btn-secondary" id="downloadAnsiBtn">下载 .ansi</button>
-      <button class="btn btn-secondary" id="downloadHtmlBtn">下载 HTML</button>
+      <button class="btn btn-primary" id="copyAnsiBtn" data-i18n="copyAnsiBtn">复制 ANSI</button>
+      <button class="btn btn-secondary" id="downloadAnsiBtn" data-i18n="downloadAnsiBtn">下载 .ansi</button>
+      <button class="btn btn-secondary" id="downloadHtmlBtn" data-i18n="downloadHtmlBtn">下载 HTML</button>
     </div>
     <div class="btn-row">
-      <button class="btn btn-danger" id="resetBtn">重置</button>
+      <button class="btn btn-danger" id="resetBtn" data-i18n="resetBtn">重置</button>
     </div>
 
     <!-- Social links + signature -->
@@ -282,12 +381,27 @@ select {
 
   <!-- Preview -->
   <div class="preview-wrap" id="previewWrap">
-    <pre id="preview">拖拽或选择一张图片开始</pre>
+    <pre id="preview" style="display:none"></pre>
     <div id="canvasWrap" style="display:none">
       <canvas id="previewCanvas" style="image-rendering:pixelated"></canvas>
     </div>
+    <div class="preview-placeholder" id="previewPlaceholder">拖拽或选择一张图片开始</div>
   </div>
 </main>
+
+<div class="info-overlay" id="infoOverlay">
+  <div class="info-modal">
+    <h2 data-i18n="infoTitle">ASCII Art Converter</h2>
+    <p data-i18n="infoDesc">一个基于浏览器的 ASCII 字符画生成器，支持上传图片、多种渲染风格、彩色模式、实时缩放拖拽。纯前端实现，无需服务器。</p>
+    <p><b data-i18n="infoFeaturesLabel">功能：</b><span data-i18n="infoFeatures">6种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出TXT/ANSI/HTML</span></p>
+    <p data-i18n="infoAuthor">作者：AOIPO_BAIZHI</p>
+    <p>
+      <a href="https://space.bilibili.com/3493130588391562" target="_blank">Bilibili</a> ·
+      <a href="https://github.com/aoipobaizhi/A-ASCLL-Art-Converter" target="_blank">GitHub</a>
+    </p>
+    <button class="close-btn" id="infoCloseBtn" data-i18n="closeBtn">关闭</button>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -297,6 +411,149 @@ select {
 </div>
 
 <script>
+// ============================================================
+// i18n — Internationalization
+// ============================================================
+const I18N = {
+  zh: {
+    title: 'ASCII Art Converter',
+    subtitle: '上传图片 → 字符画',
+    dropZone: '拖拽图片到此处 或 点击选择文件',
+    styleLabel: '渲染风格',
+    styleClassic: '经典 ASCII',
+    styleBlock: '方块像素 █▓▒░',
+    styleEdge: '线稿素描',
+    styleNumeric: '数字矩阵',
+    styleDetail: '密集细节',
+    styleMinimal: '极简线条',
+    widthLabel: '输出宽度',
+    contrastLabel: '对比度',
+    fontLabel: '预览字体',
+    invertCheck: '反色（深色字符 / 浅色背景）',
+    colorCheck: '彩色模式（保留原图颜色）',
+    copyBtn: '复制',
+    downloadBtn: '下载 .txt',
+    copyAnsiBtn: '复制 ANSI',
+    downloadAnsiBtn: '下载 .ansi',
+    downloadHtmlBtn: '下载 HTML',
+    resetBtn: '重置',
+    infoTitle: 'ASCII Art Converter',
+    infoDesc: '一个基于浏览器的 ASCII 字符画生成器，支持上传图片、多种渲染风格、彩色模式、实时缩放拖拽。纯前端实现，无需服务器。',
+    infoFeatures: '6种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出 TXT/ANSI/HTML',
+    infoFeaturesLabel: '功能：',
+    infoAuthor: '作者：AOIPO_BAIZHI',
+    closeBtn: '关闭',
+    previewPlaceholder: '拖拽或选择一张图片开始',
+    tipDefault: '上传图片开始 — 彩色模式建议宽度 ≤150 以获得流畅体验',
+    tipText: '纯文本模式 — 输出',
+    tipSmooth: '流畅无压力',
+    tipColor: '彩色模式',
+    tipPerf: '性能良好',
+    tipWarn: '渲染可能稍慢，建议 ≤150 宽度',
+    tipError: '分辨率过高，可能造成卡顿，建议降低宽度',
+    copyText: '复制纯文本',
+    downloadTxt: '下载 .txt',
+    toastCopied: '已复制到剪贴板',
+    toastCopyFail: '复制失败，请手动选择文本',
+    toastAnsiCopied: 'ANSI 已复制（粘贴到终端查看）',
+    toastDownloading: '下载中...',
+    toastAnsiDownloaded: 'ANSI 已下载（可在终端 cat 查看）',
+    toastHtmlDownloaded: 'HTML 已下载（浏览器打开即可查看彩色字符画）',
+    toastCopyFailSimple: '复制失败',
+    panelToggleTitle: '收起/展开工具栏',
+    langToggleTitle: '切换语言',
+    infoBtnTitle: '工具信息',
+    fullscreenBtnTitle: '全屏',
+  },
+  en: {
+    title: 'ASCII Art Converter',
+    subtitle: 'Upload image → ASCII art',
+    dropZone: 'Drop image here or click to select',
+    styleLabel: 'Render Style',
+    styleClassic: 'Classic ASCII',
+    styleBlock: 'Block Pixel █▓▒░',
+    styleEdge: 'Line Sketch',
+    styleNumeric: 'Numeric Matrix',
+    styleDetail: 'Dense Detail',
+    styleMinimal: 'Minimal Lines',
+    widthLabel: 'Output Width',
+    contrastLabel: 'Contrast',
+    fontLabel: 'Preview Font',
+    invertCheck: 'Invert (dark chars / light background)',
+    colorCheck: 'Color Mode (preserve original colors)',
+    copyBtn: 'Copy',
+    downloadBtn: 'Download .txt',
+    copyAnsiBtn: 'Copy ANSI',
+    downloadAnsiBtn: 'Download .ansi',
+    downloadHtmlBtn: 'Download HTML',
+    resetBtn: 'Reset',
+    infoTitle: 'ASCII Art Converter',
+    infoDesc: 'A browser-based ASCII art generator supporting image upload, multiple rendering styles, color mode, and real-time zoom & pan. Pure frontend, no server needed.',
+    infoFeatures: '6 rendering styles · Color/Text mode · Zoom & Pan · Export TXT/ANSI/HTML',
+    infoFeaturesLabel: 'Features: ',
+    infoAuthor: 'Author: AOIPO_BAIZHI',
+    closeBtn: 'Close',
+    previewPlaceholder: 'Drop or select an image to start',
+    tipDefault: 'Upload an image to start — recommended width ≤150 for color mode',
+    tipText: 'Text mode — output ',
+    tipSmooth: ', smooth',
+    tipColor: 'Color mode ',
+    tipPerf: ' — good performance',
+    tipWarn: ' — may be slow, recommend width ≤150',
+    tipError: ' — high resolution may cause lag, reduce width',
+    copyText: 'Copy Text',
+    downloadTxt: 'Download .txt',
+    toastCopied: 'Copied to clipboard',
+    toastCopyFail: 'Copy failed, select text manually',
+    toastAnsiCopied: 'ANSI copied (paste in terminal)',
+    toastDownloading: 'Downloading...',
+    toastAnsiDownloaded: 'ANSI downloaded (view in terminal)',
+    toastHtmlDownloaded: 'HTML downloaded (open in browser for color art)',
+    toastCopyFailSimple: 'Copy failed',
+    panelToggleTitle: 'Toggle toolbar',
+    langToggleTitle: 'Switch language',
+    infoBtnTitle: 'Tool info',
+    fullscreenBtnTitle: 'Fullscreen',
+  }
+};
+
+let currentLang = 'zh';
+
+function t(key) {
+  return I18N[currentLang][key] || key;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (I18N[currentLang][key]) {
+      el.textContent = I18N[currentLang][key];
+    }
+  });
+  // Update dynamic button text
+  if (lastResult.colors) {
+    copyBtn.textContent = t('copyText');
+    downloadBtn.textContent = t('downloadTxt');
+  } else {
+    copyBtn.textContent = t('copyBtn');
+    downloadBtn.textContent = t('downloadBtn');
+  }
+  // Update panel toggle title
+  $('panelToggle').title = t('panelToggleTitle');
+  $('langToggle').title = t('langToggleTitle');
+  $('infoBtn').title = t('infoBtnTitle');
+  $('fullscreenBtn').title = t('fullscreenBtnTitle');
+  $('langToggle').textContent = currentLang === 'zh' ? 'EN' : '中文';
+  // Update preview placeholder if no image loaded
+  if (!currentImage) {
+    previewPlaceholder.textContent = t('previewPlaceholder');
+  }
+  // Update tip bar
+  updateTip(lastResult.width, lastResult.height, $('colorCheck').checked && !!lastResult.colors);
+  // Update info modal
+  $('infoCloseBtn').textContent = t('closeBtn');
+}
+
 // ============================================================
 // Rendering Engine
 // ============================================================
@@ -565,6 +822,7 @@ const $ = (id) => document.getElementById(id);
 const dropZone = $('dropZone');
 const fileInput = $('fileInput');
 const preview = $('preview');
+const previewPlaceholder = $('previewPlaceholder');
 const previewCanvas = $('previewCanvas');
 const previewWrap = $('previewWrap');
 const toast = $('toast');
@@ -576,6 +834,40 @@ const colorBtns = $('colorBtns');
 $('panelToggle').addEventListener('click', () => {
   document.body.classList.toggle('collapsed');
   setTimeout(updateGrabCursor, 350); // after transition
+});
+
+// Fullscreen
+$('fullscreenBtn').addEventListener('click', () => {
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    document.documentElement.requestFullscreen();
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  document.body.classList.toggle('fullscreen', !!document.fullscreenElement);
+});
+
+// Info modal
+$('infoBtn').addEventListener('click', () => {
+  $('infoOverlay').classList.add('show');
+});
+$('infoCloseBtn').addEventListener('click', () => {
+  $('infoOverlay').classList.remove('show');
+});
+$('infoOverlay').addEventListener('click', (e) => {
+  if (e.target === $('infoOverlay')) $('infoOverlay').classList.remove('show');
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('infoOverlay').classList.contains('show')) {
+    $('infoOverlay').classList.remove('show');
+  }
+});
+
+// Language toggle
+$('langToggle').addEventListener('click', () => {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  applyI18n();
 });
 
 // Auto-load default image
@@ -669,29 +961,36 @@ function updateTip(width, height, colorMode) {
   bar.className = 'tip-bar';
   const pixels = width * height;
 
+  if (!width && !height) {
+    icon.textContent = '💡';
+    text.textContent = t('tipDefault');
+    return;
+  }
+
   if (!colorMode) {
     icon.textContent = '💡';
-    text.textContent = `纯文本模式 — 输出 ${width}×${height}，流畅无压力`;
+    text.textContent = t('tipText') + `${width}×${height}` + t('tipSmooth');
   } else if (width <= 150) {
     icon.textContent = '💡';
-    text.textContent = `彩色模式 ${width}×${height} — 性能良好`;
+    text.textContent = t('tipColor') + `${width}×${height}` + t('tipPerf');
   } else if (width <= 250) {
     bar.className = 'tip-bar warn';
     icon.textContent = '⚠️';
-    text.textContent = `彩色模式 ${width}×${height}（${(pixels/1000).toFixed(0)}k 像素）— 渲染可能稍慢，建议 ≤150 宽度`;
+    text.textContent = t('tipColor') + `${width}×${height}（${(pixels/1000).toFixed(0)}k px）` + t('tipWarn');
   } else {
     bar.className = 'tip-bar error';
     icon.textContent = '🔴';
-    text.textContent = `彩色模式 ${width}×${height}（${(pixels/1000).toFixed(0)}k 像素）— 分辨率过高，可能造成卡顿，建议降低宽度`;
+    text.textContent = t('tipColor') + `${width}×${height}（${(pixels/1000).toFixed(0)}k px）` + t('tipError');
   }
 }
 
 function refresh() {
   if (!currentImage) {
-    preview.textContent = '请选择一张图片';
-    preview.style.display = '';
-    $('canvasWrap').style.display = 'none';
+    preview.style.display = 'none';
     previewCanvas.style.display = 'none';
+    $('canvasWrap').style.display = 'none';
+    previewPlaceholder.style.display = '';
+    previewPlaceholder.textContent = t('previewPlaceholder');
     return;
   }
   const width = parseInt($('widthSlider').value);
@@ -709,20 +1008,22 @@ function refresh() {
     drawToCanvas(previewCanvas, lastResult.gray, lastResult.colors,
                  lastResult.width, lastResult.height, lastResult.chars, zoom);
     preview.style.display = 'none';
+    previewPlaceholder.style.display = 'none';
     $('canvasWrap').style.display = '';
     previewCanvas.style.display = '';
     colorBtns.style.display = 'flex';
-    copyBtn.textContent = '复制纯文本';
-    downloadBtn.textContent = '下载 .txt';
+    copyBtn.textContent = t('copyText');
+    downloadBtn.textContent = t('downloadTxt');
   } else {
     // Non-color mode: use <pre> (single DOM update, instant)
-    preview.textContent = lastResult.plain || '图片太小或无法处理';
+    preview.textContent = lastResult.plain || t('previewPlaceholder');
     preview.style.display = '';
+    previewPlaceholder.style.display = 'none';
     $('canvasWrap').style.display = 'none';
     previewCanvas.style.display = 'none';
     colorBtns.style.display = 'none';
-    copyBtn.textContent = '复制';
-    downloadBtn.textContent = '下载 .txt';
+    copyBtn.textContent = t('copyBtn');
+    downloadBtn.textContent = t('downloadBtn');
   }
 }
 
@@ -730,9 +1031,9 @@ function refresh() {
 copyBtn.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(lastResult.plain);
-    showToast('已复制到剪贴板');
+    showToast(t('toastCopied'));
   } catch {
-    showToast('复制失败，请手动选择文本');
+    showToast(t('toastCopyFail'));
   }
 });
 
@@ -741,9 +1042,9 @@ $('copyAnsiBtn').addEventListener('click', async () => {
   if (!lastResult.ansi) return;
   try {
     await navigator.clipboard.writeText(lastResult.ansi);
-    showToast('ANSI 已复制（粘贴到终端查看）');
+    showToast(t('toastAnsiCopied'));
   } catch {
-    showToast('复制失败');
+    showToast(t('toastCopyFailSimple'));
   }
 });
 
@@ -751,7 +1052,7 @@ $('copyAnsiBtn').addEventListener('click', async () => {
 downloadBtn.addEventListener('click', () => {
   const blob = new Blob([lastResult.plain], { type: 'text/plain;charset=utf-8' });
   downloadBlob(blob, 'ascii_art.txt');
-  showToast('下载中...');
+  showToast(t('toastDownloading'));
 });
 
 // Download - ANSI
@@ -759,13 +1060,13 @@ $('downloadAnsiBtn').addEventListener('click', () => {
   if (!lastResult.ansi) return;
   const blob = new Blob([lastResult.ansi], { type: 'text/plain;charset=utf-8' });
   downloadBlob(blob, 'ascii_art.ansi');
-  showToast('ANSI 已下载（可在终端 cat 查看）');
+  showToast(t('toastAnsiDownloaded'));
 });
 $('downloadHtmlBtn').addEventListener('click', () => {
   if (!lastResult.html) return;
   const blob = new Blob([lastResult.html], { type: 'text/html;charset=utf-8' });
   downloadBlob(blob, 'ascii_art.html');
-  showToast('HTML 已下载（浏览器打开即可查看彩色字符画）');
+  showToast(t('toastHtmlDownloaded'));
 });
 
 function downloadBlob(blob, filename) {
@@ -786,11 +1087,13 @@ $('resetBtn').addEventListener('click', () => {
   $('contrastVal').textContent = '2.0';
   $('fontVal').textContent = '4px';
   colorBtns.style.display = 'none';
-  preview.style.display = '';
+  preview.style.display = 'none';
+  previewPlaceholder.style.display = '';
+  previewPlaceholder.textContent = t('previewPlaceholder');
   $('canvasWrap').style.display = 'none';
   previewCanvas.style.display = 'none';
-  copyBtn.textContent = '复制';
-  downloadBtn.textContent = '下载 .txt';
+  copyBtn.textContent = t('copyBtn');
+  downloadBtn.textContent = t('downloadBtn');
   document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.style-btn[data-style="classic"]').classList.add('active');
   currentStyle = 'classic';
@@ -878,9 +1181,7 @@ previewWrap.addEventListener('touchend', () => { lastPinchDist = 0; });
 
 // Initial render
 applyZoom($('fontSlider').value);
-updateTip(0, 0, false);
-$('tipIcon').textContent = '💡';
-$('tipText').textContent = '上传图片开始 — 彩色模式建议宽度 ≤150 以获得流畅体验';
+applyI18n();
 </script>
 
 </body>
