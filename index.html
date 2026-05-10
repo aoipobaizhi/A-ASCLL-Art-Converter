@@ -22,10 +22,10 @@ body {
   min-height: 100vh; display: flex; flex-direction: column;
 }
 
-header h1 { font-size: 20px; font-weight: 600; }
+header h1 { font-size: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 header .sub { color: #999; font-size: 13px; margin-left: 8px; }
 .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-#infoBtn, #fullscreenBtn { display: none; }  /* desktop: only lang toggle visible */
+#infoBtn, #fullscreenBtn { display: none; }  /* desktop: hide info+fullscreen */
 .header-btn {
   width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border);
   background: transparent; color: var(--text); cursor: pointer;
@@ -33,10 +33,16 @@ header .sub { color: #999; font-size: 13px; margin-left: 8px; }
   font-size: 14px; transition: 0.15s; padding: 0;
 }
 .header-btn:hover { border-color: var(--accent); color: var(--accent); }
-.header-btn.lang-btn { width: auto; padding: 0 8px; font-size: 12px; font-weight: 600; }
+.header-btn.active { border-color: var(--accent); background: rgba(102,170,255,0.2); color: var(--accent); }
+.header-btn.lang-btn { width: 44px; padding: 0 4px; font-size: 12px; font-weight: 600; line-height: 32px; text-align: center; white-space: nowrap; }
+.header-btn.social-btn { width: auto; padding: 0 6px; }
+.header-btn.social-btn svg { width: 18px; height: 18px; fill: var(--text); }
+.header-btn.social-btn:hover svg { fill: var(--accent); }
+#biliHeaderBtn, #ghHeaderBtn { display: flex; }  /* desktop only */
 
 .panel-toggle {
-  width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border);
+  width: 32px; height: 32px; min-width: 32px; min-height: 32px; flex-shrink: 0;
+  border-radius: 6px; border: 1px solid var(--border);
   background: var(--bg); color: var(--text); cursor: pointer; display: flex;
   align-items: center; justify-content: center; transition: 0.2s; padding: 0;
 }
@@ -131,6 +137,13 @@ input[type="range"]::-webkit-slider-thumb {
 .btn-secondary:hover { background: #3a3a5a; }
 .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
 .btn-danger:hover { background: rgba(255,107,107,0.1); }
+.btn-picker {
+  flex: 0 0 auto; padding: 10px 12px; border-radius: var(--radius);
+  border: 2px solid var(--accent); background: transparent; color: var(--accent);
+  cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.15s;
+}
+.btn-picker:hover { background: rgba(102,170,255,0.15); }
+.btn-picker.active { background: var(--accent); color: #111; }
 
 /* Preview */
 .preview-wrap {
@@ -148,7 +161,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Social links */
 .social-links {
-  display: flex; gap: 12px; margin-top: auto; padding-top: 12px;
+  display: none; gap: 12px; margin-top: auto; padding-top: 12px;
   border-top: 1px solid var(--border);
 }
 .social-links a {
@@ -162,6 +175,7 @@ input[type="range"]::-webkit-slider-thumb {
 .signature { font-size: 11px; color: #666; text-align: center; padding-top: 8px; }
 .preview-wrap.grab { cursor: grab; }
 .preview-wrap.grabbing { cursor: grabbing; }
+.preview-wrap.picker { cursor: crosshair; }
 .preview-placeholder {
   display: flex; align-items: center; justify-content: center;
   width: 100%; height: 100%; font-size: 15px; color: #555;
@@ -170,7 +184,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 .preview-wrap pre {
   font-family: "Courier New", "Source Code Pro", "Consolas", "Menlo", "DejaVu Sans Mono", "Droid Sans Mono", "Noto Sans Mono", "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols", monospace;
-  line-height: 1; white-space: pre;
+  line-height: 1.2; white-space: pre;
   font-size: 4px; letter-spacing: 0;
   width: fit-content;
 }
@@ -189,6 +203,34 @@ input[type="range"]::-webkit-slider-thumb {
   opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100;
 }
 .toast.show { opacity: 1; }
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.5);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  font-size: 14px; color: var(--accent);
+}
+.loading-overlay.show { opacity: 1; pointer-events: auto; }
+.loading-spinner {
+  width: 36px; height: 36px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Slider + number input row */
+.slider-row { display: flex; align-items: center; gap: 6px; }
+.slider-row input[type="range"] { flex: 1; }
+.num-input {
+  width: 52px; height: 28px; border-radius: 5px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 12px;
+  text-align: center; padding: 0 4px; font-family: inherit;
+  -moz-appearance: textfield;
+}
+.num-input::-webkit-outer-spin-button,
+.num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.num-input:focus { border-color: var(--accent); outline: none; }
 
 /* Info overlay */
 .info-overlay {
@@ -227,6 +269,12 @@ body.fullscreen .tip-bar { display: none; }
 }
 .tip-bar.warn { color: #e8a840; border-color: #5a4020; }
 .tip-bar.error { color: #ff6b6b; border-color: #5a2020; }
+.tip-bar.picker { color: var(--accent); border-color: #2a4a6a; }
+.color-swatch {
+  display: none; width: 18px; height: 18px; border-radius: 4px;
+  border: 2px solid var(--border); flex-shrink: 0; vertical-align: middle;
+}
+.color-swatch.show { display: inline-block; }
 
 /* Character count */
 .char-count { color: var(--accent); font-weight: 600; font-size: 12px; white-space: nowrap; }
@@ -246,7 +294,7 @@ body.fullscreen .tip-bar { display: none; }
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     height: 48px; padding: 0 12px;
   }
-  header h1 { font-size: 16px; }
+  header h1 { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* Panel: in normal flow, vertical collapse via max-height */
   .panel {
@@ -298,7 +346,8 @@ body.fullscreen .tip-bar { display: none; }
 
   /* Show header-right buttons only on mobile */
   .header-right { display: flex; }
-  #infoBtn, #fullscreenBtn { display: flex; }
+  #infoBtn, #fullscreenBtn, #pickerHeaderBtn { display: flex; }
+  #biliHeaderBtn, #ghHeaderBtn { display: none; }  /* hide socials on mobile */
 
   /* Hide social links & signature on mobile — save preview space */
   .social-links { display: none; }
@@ -311,18 +360,41 @@ body.fullscreen .tip-bar { display: none; }
   body.fullscreen { padding-top: 0; padding-bottom: 0; }
   body.fullscreen main { margin: 0; height: 100vh; }
 }
+/* Extra-compact header for very small screens */
+/* Title wraps earlier to avoid overflow */
+@media (max-width: 380px) {
+  header h1 { white-space: normal; overflow: visible; }
+}
+
+/* Compact header + minimal tip bar on small screens */
+@media (max-width: 300px) {
+  header { height: auto; min-height: 48px; padding: 4px 6px; }
+  #headerRow { gap: 6px; }
+  .header-right { gap: 3px; }
+  header h1 { font-size: 13px; }
+  #tipIcon, #colorSwatch, #tipText { display: none; }
+  .tip-bar { padding: 2px 8px; min-height: auto; justify-content: flex-end; }
+}
+
 </style>
 </head>
 <body>
 
 <header>
-  <div style="display:flex;align-items:center;gap:12px;flex:1">
+  <div style="display:flex;align-items:center;gap:12px;flex:1" id="headerRow">
     <button class="panel-toggle" id="panelToggle" title="收起/展开工具栏">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
     </button>
-    <div><h1><span data-i18n="title">ASCII Art Converter</span><span class="sub" data-i18n="subtitle">上传图片 → 字符画</span></h1></div>
+    <div id="headerTitle" style="min-width:0"><h1><span data-i18n="title">ASCII Art Converter</span><span class="sub" data-i18n="subtitle">上传图片 → 字符画</span></h1></div>
     <div class="header-right">
+      <a class="header-btn social-btn" id="biliHeaderBtn" href="https://space.bilibili.com/3493130588391562" target="_blank" title="Bilibili">
+        <img src="https://www.bilibili.com/favicon.ico" width="18" height="18" style="display:block" alt="Bilibili">
+      </a>
+      <a class="header-btn social-btn" id="ghHeaderBtn" href="https://github.com/aoipobaizhi/A-ASCLL-Art-Converter" target="_blank" title="GitHub">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
       <button class="header-btn lang-btn" id="langToggle" title="切换语言">EN</button>
+      <button class="header-btn lang-btn" id="pickerHeaderBtn" title="取色" data-i18n="pickColorBtn">取色</button>
       <button class="header-btn" id="infoBtn" title="工具信息">ⓘ</button>
       <button class="header-btn" id="fullscreenBtn" title="全屏">⛶</button>
     </div>
@@ -354,19 +426,25 @@ body.fullscreen .tip-bar { display: none; }
 
     <!-- Width -->
     <div class="control-group">
-      <label><span data-i18n="widthLabel">输出宽度</span> <span class="value" id="widthVal">120</span></label>
-      <input type="range" id="widthSlider" min="40" max="500" value="120" step="10">
+      <label><span data-i18n="widthLabel">输出宽度</span></label>
+      <div class="slider-row">
+        <input type="range" id="widthSlider" min="35" max="400" value="120" step="5">
+        <input type="number" id="widthNum" class="num-input" min="4" max="999" value="120" step="10">
+      </div>
     </div>
 
     <!-- Contrast -->
     <div class="control-group">
-      <label><span data-i18n="contrastLabel">对比度</span> <span class="value" id="contrastVal">2.0</span></label>
-      <input type="range" id="contrastSlider" min="0.5" max="4" value="2" step="0.1">
+      <label><span data-i18n="contrastLabel">对比度</span></label>
+      <div class="slider-row">
+        <input type="range" id="contrastSlider" min="0.5" max="4" value="2" step="0.1">
+        <input type="number" id="contrastNum" class="num-input" min="0.5" max="4" value="2" step="0.1">
+      </div>
     </div>
 
     <!-- Font size -->
     <div class="control-group">
-      <label><span data-i18n="fontLabel">预览字体</span> <span class="value" id="fontVal">4px</span></label>
+      <label><span data-i18n="fontLabel">预览字体</span></label>
       <input type="range" id="fontSlider" min="0.5" max="14" value="4" step="0.5">
     </div>
 
@@ -388,6 +466,7 @@ body.fullscreen .tip-bar { display: none; }
       <button class="btn btn-secondary" id="downloadBtn" data-i18n="downloadBtn">下载 .txt</button>
     </div>
     <div class="btn-row" id="colorBtns" style="display:none">
+
       <button class="btn btn-primary" id="copyAnsiBtn" data-i18n="copyAnsiBtn">复制 ANSI</button>
       <button class="btn btn-secondary" id="downloadAnsiBtn" data-i18n="downloadAnsiBtn">下载 .ansi</button>
       <button class="btn btn-secondary" id="downloadHtmlBtn" data-i18n="downloadHtmlBtn">下载 HTML</button>
@@ -405,7 +484,7 @@ body.fullscreen .tip-bar { display: none; }
         <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       </a>
     </div>
-    <div class="signature">AOIPO_BAIZHI V1.3</div>
+    <div class="signature">AOIPO_BAIZHI V1.3.1</div>
   </div>
 
   <div class="panel-shadow" id="panelShadow"></div>
@@ -423,10 +502,10 @@ body.fullscreen .tip-bar { display: none; }
 <div class="info-overlay" id="infoOverlay">
   <div class="info-modal">
     <h2 data-i18n="infoTitle">ASCII Art Converter</h2>
-    <p data-i18n="infoDesc">一个基于浏览器的 ASCII 字符画生成器，支持上传图片、多种渲染风格、彩色模式、实时缩放拖拽。纯前端实现，无需服务器。</p>
+    <p data-i18n="infoDesc">一个基于浏览器的 ASCII 字符画生成器。</p>
     <p><b data-i18n="infoFeaturesLabel">功能：</b><span data-i18n="infoFeatures">6种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出TXT/ANSI/HTML</span></p>
     <p data-i18n="infoAuthor">作者：AOIPO_BAIZHI</p>
-    <p>版本：V1.3</p>
+    <p>版本：V1.3.1</p>
     <p>
       <a href="https://space.bilibili.com/3493130588391562" target="_blank">Bilibili</a> ·
       <a href="https://github.com/aoipobaizhi/A-ASCLL-Art-Converter" target="_blank">GitHub</a>
@@ -435,10 +514,16 @@ body.fullscreen .tip-bar { display: none; }
   </div>
 </div>
 
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <span>Processing...</span>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="tip-bar" id="tipBar">
   <span id="tipIcon">💡</span>
+  <span class="color-swatch" id="colorSwatch"></span>
   <span id="tipText"></span>
   <span class="char-count" id="charCount"></span>
 </div>
@@ -473,7 +558,7 @@ const I18N = {
     downloadHtmlBtn: '下载 HTML',
     resetBtn: '重置',
     infoTitle: 'ASCII Art Converter',
-    infoDesc: '一个基于浏览器的 ASCII 字符画生成器，支持上传图片、多种渲染风格、彩色模式、实时缩放拖拽。纯前端实现，无需服务器。',
+    infoDesc: '一个普通的 ASCII 字符画生成器。',
     infoFeatures: '8种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出 TXT/ANSI/HTML',
     infoFeaturesLabel: '功能：',
     infoAuthor: '作者：AOIPO_BAIZHI',
@@ -501,6 +586,10 @@ const I18N = {
     fullscreenBtnTitle: '全屏',
     charCount: ' 字符',
     charCountChars: ' 字符',
+    pickColorBtn: '取色',
+    tipPickerActive: '取色模式：点击预览区色块读取颜色 — 按 G 切换 · Esc 退出',
+    tipPickerPicked: '取色: RGB',
+    tipPickerAt: '位置',
   },
   en: {
     title: 'ASCII Art Converter',
@@ -555,6 +644,10 @@ const I18N = {
     fullscreenBtnTitle: 'Fullscreen',
     charCount: ' chars',
     charCountChars: ' chars',
+    pickColorBtn: 'Pick',
+    tipPickerActive: 'Picker: click a block to read color — G to toggle · Esc to exit',
+    tipPickerPicked: 'Picked: RGB',
+    tipPickerAt: 'pos',
   }
 };
 
@@ -579,6 +672,7 @@ function applyI18n() {
     copyBtn.textContent = t('copyBtn');
     downloadBtn.textContent = t('downloadBtn');
   }
+  if ($('pickerHeaderBtn')) $('pickerHeaderBtn').textContent = t('pickColorBtn');
   // Update character count display with current language
   updateCharCount();
   // Update panel toggle title
@@ -592,7 +686,11 @@ function applyI18n() {
     previewPlaceholder.textContent = t('previewPlaceholder');
   }
   // Update tip bar
-  updateTip(lastResult.width, lastResult.height, $('colorCheck').checked && !!lastResult.colors);
+  if (pickerActive) {
+    updatePickerTip();
+  } else {
+    updateTip(lastResult.width, lastResult.height, $('colorCheck').checked && !!lastResult.colors || currentStyle === 'braille' || currentStyle === 'emoji');
+  }
   // Update info modal
   $('infoCloseBtn').textContent = t('closeBtn');
 }
@@ -697,7 +795,7 @@ function renderBrailleHTML(gray, colors, w, h, invert) {
 <html lang="zh-CN"><head><meta charset="utf-8">
 <style>
   body { background: #111; font-family: "Courier New","Source Code Pro","Consolas","Menlo","DejaVu Sans Mono","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace;
-         line-height: 1; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
+         line-height: 1.2; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
 </style></head><body>
 `;
   for (let cy = 0; cy < charH; cy++) {
@@ -797,23 +895,19 @@ function processImage(image, targetWidth, style, contrast, invert, colorMode) {
     : isEmoji
     ? Math.floor(targetWidth * aspect)
     : Math.floor(targetWidth * aspect * 0.45);
-  if (sampleH < 1) return { plain: '', width: 0, height: 0, gray: null, colors: null, chars: '' };
+  if (sampleH < 1) return { plain: '', width: 0, height: 0, pixelW: 0, pixelH: 0, gray: null, colors: null, chars: '' };
 
   // Stepped downsampling: halve repeatedly to preserve detail
   let srcW = image.width;
   let srcH = image.height;
-  let srcCanvas = document.createElement('canvas');
-  srcCanvas.width = srcW;
-  srcCanvas.height = srcH;
+  let srcCanvas = makeCanvas(srcW, srcH);
   let srcCtx = srcCanvas.getContext('2d');
   srcCtx.drawImage(image, 0, 0);
 
   while (srcW > sampleW * 2 && srcH > sampleH * 2) {
     const halfW = Math.floor(srcW / 2);
     const halfH = Math.floor(srcH / 2);
-    const halfCanvas = document.createElement('canvas');
-    halfCanvas.width = halfW;
-    halfCanvas.height = halfH;
+    const halfCanvas = makeCanvas(halfW, halfH);
     const halfCtx = halfCanvas.getContext('2d');
     halfCtx.imageSmoothingEnabled = true;
     halfCtx.imageSmoothingQuality = 'high';
@@ -823,9 +917,7 @@ function processImage(image, targetWidth, style, contrast, invert, colorMode) {
     srcH = halfH;
   }
 
-  const canvas = document.createElement('canvas');
-  canvas.width = sampleW;
-  canvas.height = sampleH;
+  const canvas = makeCanvas(sampleW, sampleH);
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
@@ -846,7 +938,7 @@ function processImage(image, targetWidth, style, contrast, invert, colorMode) {
   if (isBraille) {
     const charW = Math.floor(sampleW / 2);
     const charH = Math.floor(sampleH / 4);
-    if (charW < 1 || charH < 1) return { plain: '', width: 0, height: 0, gray: null, colors: null, chars: '' };
+    if (charW < 1 || charH < 1) return { plain: '', width: 0, height: 0, pixelW: 0, pixelH: 0, gray: null, colors: null, chars: '' };
 
     const plain = renderBraille(gray, sampleW, sampleH, invert);
 
@@ -907,7 +999,7 @@ function processImage(image, targetWidth, style, contrast, invert, colorMode) {
       html = renderBrailleHTML(gray, colorData, sampleW, sampleH, invert);
     }
 
-    return { plain, ansi, html, gray: charBits, colors: charColors, width: charW, height: charH, chars: '' };
+    return { plain, ansi, html, gray: charBits, colors: charColors, width: charW, height: charH, pixelW: sampleW, pixelH: sampleH, chars: '' };
   }
 
   // Normal rendering path
@@ -929,7 +1021,7 @@ function processImage(image, targetWidth, style, contrast, invert, colorMode) {
     html = renderHTML(gray, colors, sampleW, sampleH, chars);
   }
 
-  return { plain, ansi, html, gray, colors, width: sampleW, height: sampleH, chars };
+  return { plain, ansi, html, gray, colors, width: sampleW, height: sampleH, pixelW: sampleW, pixelH: sampleH, chars };
 }
 
 function renderPlain(gray, w, h, chars) {
@@ -978,7 +1070,7 @@ function renderHTML(gray, colors, w, h, chars) {
 <html lang="zh-CN"><head><meta charset="utf-8">
 <style>
   body { background: #111; font-family: "Courier New","Source Code Pro","Consolas","Menlo","DejaVu Sans Mono","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace;
-         line-height: 1; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
+         line-height: 1.2; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
 </style></head><body>
 `;
   for (let y = 0; y < h; y++) {
@@ -1004,6 +1096,15 @@ function renderHTML(gray, colors, w, h, chars) {
   return html;
 }
 
+// Canvas factory — works in both main thread and Worker
+function makeCanvas(w, h) {
+  if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(w, h);
+  var c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  return c;
+}
+
 // Canvas-based color rendering — character masks + ImageData
 
 function drawToCanvas(canvas, gray, colors, width, height, chars, zoomScale) {
@@ -1015,6 +1116,9 @@ function drawToCanvas(canvas, gray, colors, width, height, chars, zoomScale) {
   const measured = offX.measureText('@');
   const CELL_W = Math.ceil(measured.width);
   const CELL_H = Math.ceil(16 * 1.2); // line height proportional to font
+  pickerCellW = CELL_W;
+  pickerCellH = CELL_H;
+  pickerRenderStyle = 'normal';
   offC.width = CELL_W;
   offC.height = CELL_H;
   offX.font = FONT;
@@ -1060,7 +1164,9 @@ function drawToCanvas(canvas, gray, colors, width, height, chars, zoomScale) {
       const ci = i * 3;
       const r = colors[ci], g = colors[ci + 1], b = colors[ci + 2];
       const p = gray[i];
-      const idx = Math.min(Math.floor(p / 255 * (chars.length - 1)), chars.length - 1);
+      // Skip bottom ~5% emptiest chars so bright cells still show color
+      const maxC = Math.max(1, Math.floor(chars.length * 0.95) - 1);
+      const idx = Math.min(Math.floor(p / 255 * maxC), maxC);
       const ch = chars[idx];
       const pixels = charPixels[ch];
       const px = x * CELL_W;
@@ -1089,6 +1195,9 @@ function drawEmojiToCanvas(canvas, gray, colors, width, height, chars, zoomScale
   const CELL = 14;
   const GAP = 2;
   const RADIUS = 3;
+  pickerCellW = CELL + GAP;
+  pickerCellH = CELL + GAP;
+  pickerRenderStyle = 'emoji';
 
   const cw = width * (CELL + GAP) + GAP;
   const ch = height * (CELL + GAP) + GAP;
@@ -1158,10 +1267,13 @@ function drawEmojiToCanvas(canvas, gray, colors, width, height, chars, zoomScale
 }
 
 // Braille canvas renderer — draws dot patterns directly, no font dependency
-function drawBrailleToCanvas(canvas, bitsArray, colors, charW, charH, zoomScale) {
+function drawBrailleToCanvas(canvas, bitsArray, colors, charW, charH, zoomScale, colorMode) {
   const CELL_W = 10;
   const CELL_H = 20;
   const DOT_R = 1.9;
+  pickerCellW = CELL_W;
+  pickerCellH = CELL_H;
+  pickerRenderStyle = 'braille';
 
   // Dot center positions within a cell for the 8 braille dots
   const dotCX = [CELL_W * 0.28, CELL_W * 0.72];
@@ -1211,7 +1323,7 @@ function drawBrailleToCanvas(canvas, bitsArray, colors, charW, charH, zoomScale)
       const px = x * CELL_W;
       const py = y * CELL_H;
       for (let di = 0; di < 8; di++) {
-        if (bits & BRAILLE_BITS[di][2]) {
+        if (colorMode || (bits & BRAILLE_BITS[di][2])) {
           const mask = dotMasks[di];
           for (let mi = 0; mi < mask.length; mi += 2) {
             const mx = mask[mi];
@@ -1241,6 +1353,11 @@ let currentStyle = 'classic';
 let currentZoom = 4; // tracked separately from slider for accurate oldVal
 let timer = 0;
 let lastResult = { plain: '', ansi: null, html: null, gray: null, colors: null, width: 0, height: 0, chars: '' };
+let pickerActive = false;
+let pickerCellW = 0;
+let pickerCellH = 0;
+let pickerRenderStyle = ''; // 'normal' | 'braille' | 'emoji'
+let pickedColor = null; // { r, g, b, x, y }
 
 const $ = (id) => document.getElementById(id);
 const dropZone = $('dropZone');
@@ -1287,8 +1404,23 @@ $('infoOverlay').addEventListener('click', (e) => {
   if (e.target === $('infoOverlay')) $('infoOverlay').classList.remove('show');
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && $('infoOverlay').classList.contains('show')) {
-    $('infoOverlay').classList.remove('show');
+  if (e.key === 'Escape') {
+    if ($('infoOverlay').classList.contains('show')) {
+      $('infoOverlay').classList.remove('show');
+    } else if (pickerActive) {
+      e.preventDefault();
+      togglePicker();
+    }
+  }
+  // Color picker shortcut: G key
+  if (e.key === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+    if ($('infoOverlay').classList.contains('show')) return;
+    if (document.activeElement !== document.body && document.activeElement !== previewWrap) return;
+    const canvasVisible = previewCanvas.style.display !== 'none' && lastResult.colors;
+    if (canvasVisible) {
+      e.preventDefault();
+      togglePicker();
+    }
   }
 });
 
@@ -1298,12 +1430,89 @@ $('langToggle').addEventListener('click', () => {
   applyI18n();
 });
 
+// ============================================================
+// Color Picker
+// ============================================================
+
+function togglePicker() {
+  pickerActive = !pickerActive;
+  const hdrBtn = $('pickerHeaderBtn');
+  if (pickerActive) {
+    if (hdrBtn) hdrBtn.classList.add('active');
+    previewWrap.classList.add('picker');
+    pickedColor = null;
+    updateTip(lastResult.width, lastResult.height, $('colorCheck').checked && !!lastResult.colors || currentStyle === 'braille' || currentStyle === 'emoji');
+    updatePickerTip();
+  } else {
+    if (hdrBtn) hdrBtn.classList.remove('active');
+    previewWrap.classList.remove('picker');
+    pickedColor = null;
+    $('colorSwatch').classList.remove('show');
+    updateTip(lastResult.width, lastResult.height, $('colorCheck').checked && !!lastResult.colors || currentStyle === 'braille' || currentStyle === 'emoji');
+  }
+}
+
+function updatePickerTip() {
+  if (!pickerActive) return;
+  const bar = $('tipBar');
+  const icon = $('tipIcon');
+  const text = $('tipText');
+  const swatch = $('colorSwatch');
+  bar.className = 'tip-bar picker';
+
+  if (pickedColor) {
+    icon.textContent = '🎨';
+    swatch.style.backgroundColor = `rgb(${pickedColor.r},${pickedColor.g},${pickedColor.b})`;
+    swatch.classList.add('show');
+    text.textContent = `${t('tipPickerPicked')}(${pickedColor.r}, ${pickedColor.g}, ${pickedColor.b}) — ${t('tipPickerAt')} (${pickedColor.x}, ${pickedColor.y})  |  G 切换 · Esc 退出`;
+  } else {
+    icon.textContent = '💉';
+    swatch.classList.remove('show');
+    text.textContent = t('tipPickerActive');
+  }
+}
+
+$('pickerHeaderBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  togglePicker();
+});
+
+// Pick color from canvas click
+previewCanvas.addEventListener('click', (e) => {
+  if (!pickerActive || !lastResult.colors) return;
+  const rect = previewCanvas.getBoundingClientRect();
+  const scaleX = previewCanvas.width / (rect.width || 1);
+  const scaleY = previewCanvas.height / (rect.height || 1);
+  const cx = (e.clientX - rect.left) * scaleX;
+  const cy = (e.clientY - rect.top) * scaleY;
+  const cellX = Math.floor(cx / pickerCellW);
+  const cellY = Math.floor(cy / pickerCellH);
+  if (cellX < 0 || cellX >= lastResult.width || cellY < 0 || cellY >= lastResult.height) return;
+  const ci = (cellY * lastResult.width + cellX) * 3;
+  if (ci + 2 >= lastResult.colors.length) return;
+  pickedColor = {
+    r: lastResult.colors[ci],
+    g: lastResult.colors[ci + 1],
+    b: lastResult.colors[ci + 2],
+    x: cellX,
+    y: cellY
+  };
+  updatePickerTip();
+  const rgb = `${pickedColor.r}, ${pickedColor.g}, ${pickedColor.b}`;
+  navigator.clipboard.writeText(rgb).then(() => {
+    showToast(rgb + ' ' + t('toastCopied'));
+  }).catch(() => {});
+});
+
 // Auto-load default image
 function loadDefaultImage() {
   const img = new Image();
   img.onload = () => {
     currentImage = img;
     refresh();
+  };
+  img.onerror = () => {
+    $('loadingOverlay').classList.remove('show');
   };
   img.src = 'leimu.png';
 }
@@ -1324,7 +1533,21 @@ fileInput.addEventListener('change', () => {
   if (file) loadFile(file);
 });
 
+// Ctrl+V paste image from clipboard
+document.addEventListener('paste', function(e) {
+  var items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image/') === 0) {
+      e.preventDefault();
+      loadFile(items[i].getAsFile());
+      return;
+    }
+  }
+});
+
 function loadFile(file) {
+  $('loadingOverlay').classList.add('show');
   const reader = new FileReader();
   reader.onload = (e) => {
     const img = new Image();
@@ -1332,7 +1555,13 @@ function loadFile(file) {
       currentImage = img;
       refresh();
     };
+    img.onerror = () => {
+      $('loadingOverlay').classList.remove('show');
+    };
     img.src = e.target.result;
+  };
+  reader.onerror = () => {
+    $('loadingOverlay').classList.remove('show');
   };
   reader.readAsDataURL(file);
 }
@@ -1349,17 +1578,33 @@ $('styleGrid').addEventListener('click', (e) => {
 
 // Sliders
 $('widthSlider').addEventListener('input', function() {
-  $('widthVal').textContent = this.value;
+  $('widthNum').value = this.value;
   scheduleRefresh();
 });
 $('contrastSlider').addEventListener('input', function() {
-  $('contrastVal').textContent = parseFloat(this.value).toFixed(1);
+  $('contrastNum').value = parseFloat(this.value).toFixed(1);
   scheduleRefresh();
 });
+
+$('widthNum').addEventListener('input', function() {
+  var v = parseInt(this.value);
+  if (isNaN(v)) return;
+  // Sync to slider (browser clamps to slider's own min/max)
+  $('widthSlider').value = v;
+  scheduleRefresh();
+});
+$('contrastNum').addEventListener('input', function() {
+  var v = parseFloat(this.value);
+  if (isNaN(v)) return;
+  v = Math.round(v * 10) / 10;
+  this.value = v.toFixed(1);
+  $('contrastSlider').value = Math.max(0.5, Math.min(4, v));
+  scheduleRefresh();
+});
+
 // Apply zoom: change font-size / canvas size + restore scroll anchor
 function applyZoom(val, anchorX, anchorY) {
   const vn = parseFloat(parseFloat(val).toFixed(1));
-  $('fontVal').textContent = vn.toFixed(1) + 'px';
   $('fontSlider').value = val;
   currentZoom = vn;
   zoomTarget = vn;
@@ -1433,7 +1678,6 @@ function smoothZoomTo(delta, anchorX, anchorY) {
       updateGrabCursor();
       return;
     }
-    $('fontVal').textContent = cur.toFixed(1) + 'px';
     $('fontSlider').value = cur;
     currentZoom = cur;
     // Ratio anchor from current real layout
@@ -1462,6 +1706,9 @@ function smoothZoomTo(delta, anchorX, anchorY) {
 let normalZoom = 4; // saved zoom for restoring after color mode
 $('colorCheck').addEventListener('change', function() {
   const skipZoom = currentStyle === 'braille' || currentStyle === 'emoji';
+  if (pickerActive && !this.checked && currentStyle !== 'braille' && currentStyle !== 'emoji') {
+    togglePicker();
+  }
   if (!skipZoom) {
     if (this.checked) {
       normalZoom = parseFloat($('fontSlider').value);
@@ -1485,7 +1732,7 @@ function updateTip(width, height, colorMode) {
   const icon = $('tipIcon');
   const text = $('tipText');
   bar.className = 'tip-bar';
-  const pixels = width * height;
+  const pixels = (lastResult.pixelW || width) * (lastResult.pixelH || height);
 
   if (!width && !height) {
     icon.textContent = '💡';
@@ -1511,9 +1758,38 @@ function updateTip(width, height, colorMode) {
 }
 
 function updateCharCount() {
-  const count = lastResult.plain ? lastResult.plain.replace(/\n/g, '').length : 0;
-  const text = count.toLocaleString() + t('charCount');
+  var isColor = $('colorCheck').checked || currentStyle === 'braille' || currentStyle === 'emoji';
+  var copied = isColor && lastResult.ansi ? lastResult.ansi : lastResult.plain;
+  var clipChars = copied ? copied.replace(/\n/g, '').length : 0;
+  var pixels = (lastResult.pixelW || lastResult.width || 0) * (lastResult.pixelH || lastResult.height || 0);
+  var text = clipChars.toLocaleString() + ' chars' + ' · ' + pixels.toLocaleString() + ' px';
   charCount.textContent = text;
+}
+
+// Web Worker for offloading heavy image processing
+var renderWorker = null;
+var renderWorkerBusy = false;
+var refreshSeq = 0;
+
+function getRenderWorker() {
+  if (renderWorker) return renderWorker;
+  if (typeof OffscreenCanvas === 'undefined') return null;
+  try {
+    var code = $('workerCode').textContent;
+    var blob = new Blob([code], { type: 'application/javascript' });
+    renderWorker = new Worker(URL.createObjectURL(blob));
+    return renderWorker;
+  } catch(e) {
+    return null;
+  }
+}
+
+function terminateWorker() {
+  if (renderWorker) {
+    renderWorker.terminate();
+    renderWorker = null;
+    renderWorkerBusy = false;
+  }
 }
 
 function refresh() {
@@ -1524,16 +1800,59 @@ function refresh() {
     previewPlaceholder.style.display = '';
     charCount.textContent = '';
     previewPlaceholder.textContent = t('previewPlaceholder');
+    $('loadingOverlay').classList.remove('show');
     return;
   }
-  const width = parseInt($('widthSlider').value);
-  const contrast = parseFloat($('contrastSlider').value);
+  const width = parseInt($('widthNum').value) || 120;
+  const contrast = parseFloat($('contrastNum').value) || 2;
   const invert = !$('normalCheck').checked; // inverted by default
   const colorMode = $('colorCheck').checked;
 
+  // Try worker path for large images if OffscreenCanvas is available
+  var wkr = getRenderWorker();
+  var useWorker = wkr && !renderWorkerBusy && (currentImage.width > 800 || currentImage.height > 800);
+  if (useWorker) {
+    renderWorkerBusy = true;
+    refreshSeq++;
+    var mySeq = refreshSeq;
+    $('loadingOverlay').classList.add('show');
+    wkr.onmessage = function(e) {
+      renderWorkerBusy = false;
+      if (mySeq !== refreshSeq) { $('loadingOverlay').classList.remove('show'); return; }
+      lastResult = e.data;
+      renderResult();
+      $('loadingOverlay').classList.remove('show');
+    };
+    wkr.onerror = function() {
+      renderWorkerBusy = false;
+      if (mySeq !== refreshSeq) { $('loadingOverlay').classList.remove('show'); return; }
+      // Fall back to synchronous on error
+      lastResult = processImage(currentImage, width, currentStyle, contrast, invert, colorMode);
+      renderResult();
+      $('loadingOverlay').classList.remove('show');
+    };
+    createImageBitmap(currentImage).then(function(bitmap) {
+      if (mySeq !== refreshSeq) { renderWorkerBusy = false; return; }
+      wkr.postMessage({ bitmap: bitmap, targetWidth: width, style: currentStyle, contrast: contrast, invert: invert, colorMode: colorMode }, [bitmap]);
+    }).catch(function() {
+      if (mySeq !== refreshSeq) return;
+      renderWorkerBusy = false;
+      lastResult = processImage(currentImage, width, currentStyle, contrast, invert, colorMode);
+      renderResult();
+      $('loadingOverlay').classList.remove('show');
+    });
+    return; // async — renderResult will be called by worker callback
+  }
+
   lastResult = processImage(currentImage, width, currentStyle, contrast, invert, colorMode);
+  renderResult();
+}
+
+function renderResult() {
+  var colorMode = $('colorCheck').checked;
   const forceCanvas = currentStyle === 'braille' || currentStyle === 'emoji';
   updateTip(lastResult.width, lastResult.height, (colorMode || forceCanvas) && !!lastResult.colors);
+  if (pickerActive) updatePickerTip();
   updateCharCount();
   setTimeout(() => { updateGrabCursor(); updateContentAlignment(); }, 80); // wait for layout to settle
 
@@ -1557,13 +1876,15 @@ function refresh() {
     const zoom = parseFloat($('fontSlider').value);
     if (currentStyle === 'braille') {
       drawBrailleToCanvas(previewCanvas, lastResult.gray, renderColors,
-                   lastResult.width, lastResult.height, zoom);
+                   lastResult.width, lastResult.height, zoom, colorMode);
     } else if (currentStyle === 'emoji') {
       drawEmojiToCanvas(previewCanvas, lastResult.gray, renderColors,
                    lastResult.width, lastResult.height, lastResult.chars, zoom);
     } else {
+      // Minimal style has . which is too sparse for color — use denser set
+      var drawChars = currentStyle === 'minimal' ? '@%#+' : lastResult.chars;
       drawToCanvas(previewCanvas, lastResult.gray, renderColors,
-                   lastResult.width, lastResult.height, lastResult.chars, zoom);
+                   lastResult.width, lastResult.height, drawChars, zoom);
     }
     preview.style.display = 'none';
     previewPlaceholder.style.display = 'none';
@@ -1574,6 +1895,7 @@ function refresh() {
     downloadBtn.textContent = colorMode ? t('downloadTxt') : t('downloadBtn');
   } else {
     // Non-color mode: use <pre> (single DOM update, instant)
+    if (pickerActive) togglePicker();
     preview.textContent = lastResult.plain || t('previewPlaceholder');
     preview.style.display = '';
     previewPlaceholder.style.display = 'none';
@@ -1583,6 +1905,7 @@ function refresh() {
     copyBtn.textContent = t('copyBtn');
     downloadBtn.textContent = t('downloadBtn');
   }
+  $('loadingOverlay').classList.remove('show');
 }
 
 // Copy - plain text
@@ -1636,15 +1959,16 @@ function downloadBlob(blob, filename) {
 }
 
 $('resetBtn').addEventListener('click', () => {
+  if (pickerActive) togglePicker();
+  terminateWorker();
   $('widthSlider').value = 120;
   $('contrastSlider').value = 2;
   $('fontSlider').value = 4;
+  $('widthNum').value = 120;
+  $('contrastNum').value = 2;
   currentZoom = 4;
   $('normalCheck').checked = false;
   $('colorCheck').checked = false;
-  $('widthVal').textContent = '120';
-  $('contrastVal').textContent = '2.0';
-  $('fontVal').textContent = '4px';
   colorBtns.style.display = 'none';
   preview.style.display = 'none';
   previewPlaceholder.style.display = '';
@@ -1801,6 +2125,7 @@ let lastPinchDist = 0;
 let touchId = null;
 previewWrap.addEventListener('touchstart', (e) => {
   if (e.touches.length === 2) {
+    e.preventDefault();
     // Pinch start — cancel any pan
     dragging = false; touchId = null;
     previewWrap.classList.remove('grabbing');
@@ -1870,9 +2195,429 @@ previewWrap.addEventListener('touchend', (e) => {
   lastPinchDist = 0;
 });
 
+
+// Pinch-zoom prevention — stops browser from zooming outside preview area
+document.addEventListener('touchstart', function(e) {
+  if (e.touches.length > 1) {
+    var inPreview = false;
+    for (var i = 0; i < e.touches.length; i++) {
+      if (previewWrap.contains(e.touches[i].target)) { inPreview = true; break; }
+    }
+    if (!inPreview) e.preventDefault();
+  }
+}, { passive: false });
+document.addEventListener('touchmove', function(e) {
+  if (e.touches.length > 1) {
+    var inPreview = false;
+    for (var i = 0; i < e.touches.length; i++) {
+      if (previewWrap.contains(e.touches[i].target)) { inPreview = true; break; }
+    }
+    if (!inPreview) e.preventDefault();
+  }
+}, { passive: false });
 // Initial render
 applyZoom($('fontSlider').value);
 applyI18n();
+</script>
+
+<script type="text/plain" id="workerCode">
+// ============================================================
+// Web Worker rendering — all functions duplicated for worker context
+// Uses OffscreenCanvas for image processing
+// ============================================================
+
+function makeCanvas(w, h) {
+  return new OffscreenCanvas(w, h);
+}
+
+// Character sets
+var CHAR_SETS = {
+  classic:   '@%#*+=-:. ',
+  block:     '█▓▒░ ',
+  numeric:   '9876543210 ',
+  detail:    '$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,"^`\'. ',
+  minimal:   '@#. ',
+  edge:      '@%#*+=-:. ',
+  braille:   '⣿',
+  emoji:     '🟥🟧🟨🟩🟦🟪🟫⬛⬜',
+};
+
+// Braille dot to bit mapping
+var BRAILLE_BITS = [
+  [0, 0, 0x01], [1, 0, 0x08],
+  [0, 1, 0x02], [1, 1, 0x10],
+  [0, 2, 0x04], [1, 2, 0x20],
+  [0, 3, 0x40], [1, 3, 0x80],
+];
+
+function convertToGrayscale(imageData) {
+  var gray = new Uint8Array(imageData.width * imageData.height);
+  var data = imageData.data;
+  for (var i = 0, j = 0; i < data.length; i += 4, j++) {
+    gray[j] = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+  }
+  return gray;
+}
+
+function extractColors(imageData) {
+  var count = imageData.width * imageData.height;
+  var colors = new Uint8Array(count * 3);
+  var data = imageData.data;
+  for (var i = 0, j = 0; i < data.length; i += 4, j += 3) {
+    colors[j] = data[i];
+    colors[j + 1] = data[i + 1];
+    colors[j + 2] = data[i + 2];
+  }
+  return colors;
+}
+
+function applyContrast(gray, factor) {
+  var result = new Uint8Array(gray.length);
+  for (var i = 0; i < gray.length; i++) {
+    var v = (gray[i] - 128) * factor + 128;
+    result[i] = Math.max(0, Math.min(255, Math.round(v)));
+  }
+  return result;
+}
+
+function applyColorContrast(colors, factor) {
+  for (var i = 0; i < colors.length; i++) {
+    var v = (colors[i] - 128) * factor + 128;
+    colors[i] = Math.max(0, Math.min(255, Math.round(v)));
+  }
+}
+
+function detectEdges(gray, w, h) {
+  var result = new Uint8Array(gray.length);
+  for (var y = 1; y < h - 1; y++) {
+    for (var x = 1; x < w - 1; x++) {
+      var i = y * w + x;
+      var gx = -gray[i - w - 1] - 2 * gray[i - 1] - gray[i + w - 1]
+               + gray[i - w + 1] + 2 * gray[i + 1] + gray[i + w + 1];
+      var gy = -gray[i - w - 1] - 2 * gray[i - w] - gray[i - w + 1]
+               + gray[i + w - 1] + 2 * gray[i + w] + gray[i + w + 1];
+      var mag = Math.sqrt(gx * gx + gy * gy);
+      mag = 255 - Math.min(255, mag * 3);
+      result[i] = mag;
+    }
+  }
+  return result;
+}
+
+function renderPlain(gray, w, h, chars) {
+  var lines = [];
+  for (var y = 0; y < h; y++) {
+    var line = '';
+    var offset = y * w;
+    for (var x = 0; x < w; x++) {
+      var p = gray[offset + x];
+      line += chars[Math.min(Math.floor(p / 255 * (chars.length - 1)), chars.length - 1)];
+    }
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function renderANSI(gray, colors, w, h, chars) {
+  var lines = [];
+  for (var y = 0; y < h; y++) {
+    var offset = y * w;
+    var line = '', run = '';
+    var lastR = -1, lastG = -1, lastB = -1;
+    for (var x = 0; x < w; x++) {
+      var i = offset + x;
+      var p = gray[i];
+      var ch = chars[Math.min(Math.floor(p / 255 * (chars.length - 1)), chars.length - 1)];
+      var ci = i * 3;
+      var r = colors[ci], g = colors[ci + 1], b = colors[ci + 2];
+      if (r !== lastR || g !== lastG || b !== lastB) {
+        line += run;
+        run = '';
+        line += '\x1b[38;2;' + r + ';' + g + ';' + b + 'm';
+        lastR = r; lastG = g; lastB = b;
+      }
+      run += ch;
+    }
+    line += run;
+    if (lastR !== -1) line += '\x1b[0m';
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function renderHTML(gray, colors, w, h, chars) {
+  var html = '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="utf-8">\n<style>\n  body { background: #111; font-family: "Courier New","Source Code Pro","Consolas","Menlo","DejaVu Sans Mono","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace;\n         line-height: 1.2; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }\n</style></head><body>\n';
+  for (var y = 0; y < h; y++) {
+    var offset = y * w;
+    var run = '';
+    var lastR = -1, lastG = -1, lastB = -1;
+    for (var x = 0; x < w; x++) {
+      var i = offset + x;
+      var ci = i * 3;
+      var r = colors[ci], g = colors[ci + 1], b = colors[ci + 2];
+      if (r !== lastR || g !== lastG || b !== lastB) {
+        if (run) html += run.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
+        run = '';
+        html += '<span style="color:rgb(' + r + ',' + g + ',' + b + ')">';
+        lastR = r; lastG = g; lastB = b;
+      }
+      var p = gray[i];
+      run += chars[Math.min(Math.floor(p / 255 * (chars.length - 1)), chars.length - 1)];
+    }
+    html += run.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>\n';
+  }
+  html += '</body></html>';
+  return html;
+}
+
+function renderBraille(gray, w, h, invert) {
+  var sum = 0;
+  for (var i = 0; i < gray.length; i++) sum += gray[i];
+  var threshold = sum / gray.length;
+  var charW = Math.floor(w / 2);
+  var charH = Math.floor(h / 4);
+  var lines = [];
+  for (var cy = 0; cy < charH; cy++) {
+    var line = '';
+    for (var cx = 0; cx < charW; cx++) {
+      var bits = 0;
+      for (var bi = 0; bi < BRAILLE_BITS.length; bi++) {
+        var dx = BRAILLE_BITS[bi][0], dy = BRAILLE_BITS[bi][1], bit = BRAILLE_BITS[bi][2];
+        var px = cx * 2 + dx;
+        var py = cy * 4 + dy;
+        var val = gray[py * w + px];
+        if (invert ? val > threshold : val < threshold) bits |= bit;
+      }
+      line += String.fromCodePoint(0x2800 + bits);
+    }
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function renderBrailleANSI(gray, colors, w, h, invert) {
+  var sum = 0;
+  for (var i = 0; i < gray.length; i++) sum += gray[i];
+  var threshold = sum / gray.length;
+  var charW = Math.floor(w / 2);
+  var charH = Math.floor(h / 4);
+  var lines = [];
+  for (var cy = 0; cy < charH; cy++) {
+    var line = '', run = '';
+    var lastR = -1, lastG = -1, lastB = -1;
+    for (var cx = 0; cx < charW; cx++) {
+      var sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+      var bits = 0;
+      for (var bi = 0; bi < BRAILLE_BITS.length; bi++) {
+        var dx = BRAILLE_BITS[bi][0], dy = BRAILLE_BITS[bi][1], bit = BRAILLE_BITS[bi][2];
+        var px = cx * 2 + dx;
+        var py = cy * 4 + dy;
+        var pi = py * w + px;
+        var ci = pi * 3;
+        sumR += colors[ci]; sumG += colors[ci + 1]; sumB += colors[ci + 2]; cnt++;
+        var val = gray[pi];
+        if (invert ? val > threshold : val < threshold) bits |= bit;
+      }
+      var r = Math.round(sumR / cnt), g = Math.round(sumG / cnt), b = Math.round(sumB / cnt);
+      var ch = String.fromCodePoint(0x2800 + bits);
+      if (r !== lastR || g !== lastG || b !== lastB) {
+        line += run; run = '';
+        line += '\x1b[38;2;' + r + ';' + g + ';' + b + 'm';
+        lastR = r; lastG = g; lastB = b;
+      }
+      run += ch;
+    }
+    line += run;
+    if (lastR !== -1) line += '\x1b[0m';
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function renderBrailleHTML(gray, colors, w, h, invert) {
+  var sum = 0;
+  for (var i = 0; i < gray.length; i++) sum += gray[i];
+  var threshold = sum / gray.length;
+  var charW = Math.floor(w / 2);
+  var charH = Math.floor(h / 4);
+  var html = '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="utf-8">\n<style>\n  body { background: #111; font-family: "Courier New","Source Code Pro","Consolas","Menlo","DejaVu Sans Mono","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace;\n         line-height: 1.2; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }\n</style></head><body>\n';
+  for (var cy = 0; cy < charH; cy++) {
+    var run = '';
+    var lastR = -1, lastG = -1, lastB = -1;
+    for (var cx = 0; cx < charW; cx++) {
+      var sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+      var bits = 0;
+      for (var bi = 0; bi < BRAILLE_BITS.length; bi++) {
+        var dx = BRAILLE_BITS[bi][0], dy = BRAILLE_BITS[bi][1], bit = BRAILLE_BITS[bi][2];
+        var px = cx * 2 + dx;
+        var py = cy * 4 + dy;
+        var pi = py * w + px;
+        var ci = pi * 3;
+        sumR += colors[ci]; sumG += colors[ci + 1]; sumB += colors[ci + 2]; cnt++;
+        var val = gray[pi];
+        if (invert ? val > threshold : val < threshold) bits |= bit;
+      }
+      var r = Math.round(sumR / cnt), g = Math.round(sumG / cnt), b = Math.round(sumB / cnt);
+      if (r !== lastR || g !== lastG || b !== lastB) {
+        if (run) html += run.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
+        run = '';
+        html += '<span style="color:rgb(' + r + ',' + g + ',' + b + ')">';
+        lastR = r; lastG = g; lastB = b;
+      }
+      run += String.fromCodePoint(0x2800 + bits);
+    }
+    html += run.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>\n';
+  }
+  html += '</body></html>';
+  return html;
+}
+
+function processImage(image, targetWidth, style, contrast, invert, colorMode) {
+  var aspect = image.height / image.width;
+  var isBraille = style === 'braille';
+  var isEmoji = style === 'emoji';
+
+  var sampleW = isBraille ? targetWidth * 2 : targetWidth;
+  var sampleH = isBraille
+    ? Math.floor(targetWidth * 2 * aspect)
+    : isEmoji
+    ? Math.floor(targetWidth * aspect)
+    : Math.floor(targetWidth * aspect * 0.45);
+  if (sampleH < 1) return { plain: '', width: 0, height: 0, pixelW: 0, pixelH: 0, gray: null, colors: null, chars: '' };
+
+  // Stepped downsampling
+  var srcW = image.width;
+  var srcH = image.height;
+  var srcCanvas = makeCanvas(srcW, srcH);
+  var srcCtx = srcCanvas.getContext('2d');
+  srcCtx.drawImage(image, 0, 0);
+
+  while (srcW > sampleW * 2 && srcH > sampleH * 2) {
+    var halfW = Math.floor(srcW / 2);
+    var halfH = Math.floor(srcH / 2);
+    var halfCanvas = makeCanvas(halfW, halfH);
+    var halfCtx = halfCanvas.getContext('2d');
+    halfCtx.imageSmoothingEnabled = true;
+    halfCtx.imageSmoothingQuality = 'high';
+    halfCtx.drawImage(srcCanvas, 0, 0, halfW, halfH);
+    srcCanvas = halfCanvas;
+    srcW = halfW;
+    srcH = halfH;
+  }
+
+  var canvas = makeCanvas(sampleW, sampleH);
+  var ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(srcCanvas, 0, 0, sampleW, sampleH);
+
+  var imageData = ctx.getImageData(0, 0, sampleW, sampleH);
+  var gray = convertToGrayscale(imageData);
+
+  var useColor = colorMode && style !== 'edge';
+
+  if (style === 'edge') {
+    gray = detectEdges(gray, sampleW, sampleH);
+    contrast = Math.max(contrast, 1.5);
+  }
+  gray = applyContrast(gray, contrast);
+
+  // Braille rendering path
+  if (isBraille) {
+    var charW = Math.floor(sampleW / 2);
+    var charH = Math.floor(sampleH / 4);
+    if (charW < 1 || charH < 1) return { plain: '', width: 0, height: 0, pixelW: 0, pixelH: 0, gray: null, colors: null, chars: '' };
+
+    var plain = renderBraille(gray, sampleW, sampleH, invert);
+
+    var graySum = 0;
+    for (var i = 0; i < gray.length; i++) graySum += gray[i];
+    var brailleThreshold = graySum / gray.length;
+
+    var charBits = new Uint8Array(charW * charH);
+    var charColors = new Uint8Array(charW * charH * 3);
+    var colorData = useColor ? extractColors(imageData) : null;
+    if (colorData) applyColorContrast(colorData, contrast);
+
+    for (var cy = 0; cy < charH; cy++) {
+      for (var cx = 0; cx < charW; cx++) {
+        var bits = 0, sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+        for (var bi = 0; bi < BRAILLE_BITS.length; bi++) {
+          var dx = BRAILLE_BITS[bi][0], dy = BRAILLE_BITS[bi][1], bit = BRAILLE_BITS[bi][2];
+          var px = cx * 2 + dx;
+          var py = cy * 4 + dy;
+          var pi = py * sampleW + px;
+          var val = gray[pi];
+          if (invert ? val > brailleThreshold : val < brailleThreshold) bits |= bit;
+          if (colorData) {
+            var ci = pi * 3;
+            sumR += colorData[ci];
+            sumG += colorData[ci + 1];
+            sumB += colorData[ci + 2];
+            cnt++;
+          }
+        }
+        var i = cy * charW + cx;
+        charBits[i] = bits;
+        var ci3 = i * 3;
+        if (colorData) {
+          charColors[ci3] = Math.round(sumR / cnt);
+          charColors[ci3 + 1] = Math.round(sumG / cnt);
+          charColors[ci3 + 2] = Math.round(sumB / cnt);
+        } else {
+          var dotSum = 0;
+          for (var bi2 = 0; bi2 < BRAILLE_BITS.length; bi2++) {
+            var dx2 = BRAILLE_BITS[bi2][0], dy2 = BRAILLE_BITS[bi2][1];
+            dotSum += gray[(cy * 4 + dy2) * sampleW + (cx * 2 + dx2)];
+          }
+          var v = Math.round(dotSum / 8);
+          charColors[ci3] = v;
+          charColors[ci3 + 1] = v;
+          charColors[ci3 + 2] = v;
+        }
+      }
+    }
+
+    var ansi = null, html = null;
+    if (useColor) {
+      ansi = renderBrailleANSI(gray, colorData, sampleW, sampleH, invert);
+      html = renderBrailleHTML(gray, colorData, sampleW, sampleH, invert);
+    }
+
+    return { plain: plain, ansi: ansi, html: html, gray: charBits, colors: charColors, width: charW, height: charH, pixelW: sampleW, pixelH: sampleH, chars: '' };
+  }
+
+  // Normal rendering path
+  var chars = CHAR_SETS[style] || CHAR_SETS.classic;
+  if (invert) {
+    chars = chars.split('').reverse().join('');
+  }
+
+  var plain = renderPlain(gray, sampleW, sampleH, chars);
+
+  var ansi = null;
+  var colors = null;
+  var html = null;
+  if (useColor) {
+    var colorData2 = extractColors(imageData);
+    applyColorContrast(colorData2, contrast);
+    colors = colorData2;
+    ansi = renderANSI(gray, colors, sampleW, sampleH, chars);
+    html = renderHTML(gray, colors, sampleW, sampleH, chars);
+  }
+
+  return { plain: plain, ansi: ansi, html: html, gray: gray, colors: colors, width: sampleW, height: sampleH, pixelW: sampleW, pixelH: sampleH, chars: chars };
+}
+
+self.onmessage = function(e) {
+  var d = e.data;
+  var result = processImage(d.bitmap, d.targetWidth, d.style, d.contrast, d.invert, d.colorMode);
+  // Transfer Uint8Array buffers back to main thread for zero-copy
+  var transfers = [];
+  if (result.gray && result.gray.buffer) transfers.push(result.gray.buffer);
+  if (result.colors && result.colors.buffer) transfers.push(result.colors.buffer);
+  self.postMessage(result, transfers);
+};
 </script>
 
 </body>
