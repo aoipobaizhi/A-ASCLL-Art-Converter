@@ -22,7 +22,7 @@
 3. detectEdges（仅线稿风格）→ Sobel 边缘检测
 4. applyContrast → 对比度调整
 5. 字符映射：灰度 0~255 → 字符集索引
-6. 输出：纯文本 / ANSI / Canvas / HTML
+6. 输出：纯文本 / ANSI / Canvas（渲染器） / HTML
 
 ### Canvas 彩色渲染（drawToCanvas）
 - 使用 measureText 获取设备真实字符宽度（兼容手机）
@@ -33,18 +33,8 @@
 
 ### ANSI 输出（renderANSI）
 - 批量合并同色相邻字符（大幅压缩输出体积）
-- 仅在颜色变化时输出 \x1b[38;2;R;G;Bm 转义码
 - 适用于 Windows Terminal / iTerm2 / kitty 等真彩色终端
 
-### 国际化（i18n）
-- I18N 对象管理中英文字符串
-- data-i18n HTML 属性标记需翻译的元素
-- applyI18n() 统一更新全界面文字
-- 覆盖：按钮、标签、提示栏、Toast、弹窗
-
-### 缩放公式
-- 线性映射：displaySize = sliderValue / 4
-- 范围：slider 0.5→0.125x, 4→1x, 14→3.5x
 
 ## 早期脚本说明
 三个 _early.py 脚本是开发探索阶段的产物：
