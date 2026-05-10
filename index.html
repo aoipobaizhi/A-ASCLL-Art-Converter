@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>ASCII Art Converter</title>
 <style>
 :root {
@@ -169,8 +169,8 @@ input[type="range"]::-webkit-slider-thumb {
   user-select: none; pointer-events: none;
 }
 .preview-wrap pre {
-  font-family: "Courier New", "Source Code Pro", "Consolas", "DejaVu Sans Mono", "Droid Sans Mono", "Noto Sans Mono", "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols", monospace;
-  line-height: 1.0; white-space: pre;
+  font-family: "Courier New", "Source Code Pro", "Consolas", "Menlo", "DejaVu Sans Mono", "Droid Sans Mono", "Noto Sans Mono", "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols", monospace;
+  line-height: 1; white-space: pre;
   font-size: 4px; letter-spacing: 0;
   width: fit-content;
 }
@@ -228,6 +228,13 @@ body.fullscreen .tip-bar { display: none; }
 .tip-bar.warn { color: #e8a840; border-color: #5a4020; }
 .tip-bar.error { color: #ff6b6b; border-color: #5a2020; }
 
+/* Character count */
+.char-count { color: var(--accent); font-weight: 600; font-size: 12px; white-space: nowrap; }
+#charCount { margin-left: auto; }
+
+/* Panel bottom shadow separator */
+.panel-shadow { display: none; }
+
 /* Mobile */
 @media (max-width: 768px) {
   body {
@@ -246,13 +253,24 @@ body.fullscreen .tip-bar { display: none; }
     position: relative; top: auto; left: auto; right: auto; bottom: auto;
     width: 100%; min-width: auto; max-height: 45vh; overflow-y: auto;
     border-right: none; border-bottom: 1px solid var(--border);
+    border-radius: 0 0 14px 14px;
+    background: #0f1a2e;
     transition: max-height 0.3s ease, padding 0.3s ease, border 0.3s ease;
-    z-index: auto;
+    z-index: 10;
   }
   body.collapsed .panel {
     max-height: 0; padding-top: 0; padding-bottom: 0;
     border-bottom: none; overflow: hidden;
   }
+
+  /* Shadow separator between panel and preview */
+  .panel-shadow {
+    display: block; height: 6px;
+    background: transparent;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    position: relative; z-index: 9;
+  }
+  body.collapsed .panel-shadow { box-shadow: none; }
 
   /* Chevron: point up when expanded, down when collapsed */
   .panel-toggle svg { transform: rotate(-90deg); }
@@ -330,6 +348,7 @@ body.fullscreen .tip-bar { display: none; }
         <button class="style-btn" data-style="detail" data-i18n="styleDetail">密集细节</button>
         <button class="style-btn" data-style="braille" data-i18n="styleBraille">盲文点阵 ⣿</button>
         <button class="style-btn" data-style="minimal" data-i18n="styleMinimal">极简线条</button>
+        <button class="style-btn" data-style="emoji" data-i18n="styleEmoji">Emoji 方块 ⬛</button>
       </div>
     </div>
 
@@ -386,8 +405,10 @@ body.fullscreen .tip-bar { display: none; }
         <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       </a>
     </div>
-    <div class="signature">AOIPO_BAIZHI V1.2</div>
+    <div class="signature">AOIPO_BAIZHI V1.3</div>
   </div>
+
+  <div class="panel-shadow" id="panelShadow"></div>
 
   <!-- Preview -->
   <div class="preview-wrap" id="previewWrap">
@@ -405,7 +426,7 @@ body.fullscreen .tip-bar { display: none; }
     <p data-i18n="infoDesc">一个基于浏览器的 ASCII 字符画生成器，支持上传图片、多种渲染风格、彩色模式、实时缩放拖拽。纯前端实现，无需服务器。</p>
     <p><b data-i18n="infoFeaturesLabel">功能：</b><span data-i18n="infoFeatures">6种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出TXT/ANSI/HTML</span></p>
     <p data-i18n="infoAuthor">作者：AOIPO_BAIZHI</p>
-    <p>版本：V1.2</p>
+    <p>版本：V1.3</p>
     <p>
       <a href="https://space.bilibili.com/3493130588391562" target="_blank">Bilibili</a> ·
       <a href="https://github.com/aoipobaizhi/A-ASCLL-Art-Converter" target="_blank">GitHub</a>
@@ -419,6 +440,7 @@ body.fullscreen .tip-bar { display: none; }
 <div class="tip-bar" id="tipBar">
   <span id="tipIcon">💡</span>
   <span id="tipText"></span>
+  <span class="char-count" id="charCount"></span>
 </div>
 
 <script>
@@ -438,6 +460,7 @@ const I18N = {
     styleDetail: '密集细节',
     styleBraille: '盲文点阵 ⣿',
     styleMinimal: '极简线条',
+    styleEmoji: 'Emoji 方块 ⬛',
     widthLabel: '输出宽度',
     contrastLabel: '对比度',
     fontLabel: '预览字体',
@@ -451,7 +474,7 @@ const I18N = {
     resetBtn: '重置',
     infoTitle: 'ASCII Art Converter',
     infoDesc: '一个基于浏览器的 ASCII 字符画生成器，支持上传图片、多种渲染风格、彩色模式、实时缩放拖拽。纯前端实现，无需服务器。',
-    infoFeatures: '7种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出 TXT/ANSI/HTML',
+    infoFeatures: '8种渲染风格 · 彩色/纯文本模式 · 缩放拖拽 · 导出 TXT/ANSI/HTML',
     infoFeaturesLabel: '功能：',
     infoAuthor: '作者：AOIPO_BAIZHI',
     closeBtn: '关闭',
@@ -476,6 +499,8 @@ const I18N = {
     langToggleTitle: '切换语言',
     infoBtnTitle: '工具信息',
     fullscreenBtnTitle: '全屏',
+    charCount: ' 字符',
+    charCountChars: ' 字符',
   },
   en: {
     title: 'ASCII Art Converter',
@@ -489,6 +514,7 @@ const I18N = {
     styleDetail: 'Dense Detail',
     styleBraille: 'Braille Dots ⣿',
     styleMinimal: 'Minimal Lines',
+    styleEmoji: 'Emoji Block ⬛',
     widthLabel: 'Output Width',
     contrastLabel: 'Contrast',
     fontLabel: 'Preview Font',
@@ -502,7 +528,7 @@ const I18N = {
     resetBtn: 'Reset',
     infoTitle: 'ASCII Art Converter',
     infoDesc: 'A browser-based ASCII art generator supporting image upload, multiple rendering styles, color mode, and real-time zoom & pan. Pure frontend, no server needed.',
-    infoFeatures: '7 rendering styles · Color/Text mode · Zoom & Pan · Export TXT/ANSI/HTML',
+    infoFeatures: '8 rendering styles · Color/Text mode · Zoom & Pan · Export TXT/ANSI/HTML',
     infoFeaturesLabel: 'Features: ',
     infoAuthor: 'Author: AOIPO_BAIZHI',
     closeBtn: 'Close',
@@ -527,6 +553,8 @@ const I18N = {
     langToggleTitle: 'Switch language',
     infoBtnTitle: 'Tool info',
     fullscreenBtnTitle: 'Fullscreen',
+    charCount: ' chars',
+    charCountChars: ' chars',
   }
 };
 
@@ -551,6 +579,8 @@ function applyI18n() {
     copyBtn.textContent = t('copyBtn');
     downloadBtn.textContent = t('downloadBtn');
   }
+  // Update character count display with current language
+  updateCharCount();
   // Update panel toggle title
   $('panelToggle').title = t('panelToggleTitle');
   $('langToggle').title = t('langToggleTitle');
@@ -579,6 +609,7 @@ const CHAR_SETS = {
   minimal:   '@#. ',
   edge:      '@%#*+=-:. ',
   braille:   '⣿', // placeholder, braille uses special renderer
+  emoji:     '🟥🟧🟨🟩🟦🟪🟫⬛⬜',
 };
 
 // Braille dot → bit mapping (Unicode standard layout)
@@ -594,6 +625,10 @@ const BRAILLE_BITS = [
 ];
 
 function renderBraille(gray, w, h, invert) {
+  // Adaptive threshold from image mean brightness
+  let sum = 0;
+  for (let i = 0; i < gray.length; i++) sum += gray[i];
+  const threshold = sum / gray.length;
   const charW = Math.floor(w / 2);
   const charH = Math.floor(h / 4);
   const lines = [];
@@ -605,7 +640,7 @@ function renderBraille(gray, w, h, invert) {
         const px = cx * 2 + dx;
         const py = cy * 4 + dy;
         const val = gray[py * w + px];
-        if (invert ? val > 128 : val < 128) bits |= bit;
+        if (invert ? val > threshold : val < threshold) bits |= bit;
       }
       line += String.fromCodePoint(0x2800 + bits);
     }
@@ -615,6 +650,9 @@ function renderBraille(gray, w, h, invert) {
 }
 
 function renderBrailleANSI(gray, colors, w, h, invert) {
+  let sum = 0;
+  for (let i = 0; i < gray.length; i++) sum += gray[i];
+  const threshold = sum / gray.length;
   const charW = Math.floor(w / 2);
   const charH = Math.floor(h / 4);
   const lines = [];
@@ -631,7 +669,7 @@ function renderBrailleANSI(gray, colors, w, h, invert) {
         const ci = pi * 3;
         sumR += colors[ci]; sumG += colors[ci + 1]; sumB += colors[ci + 2]; cnt++;
         const val = gray[pi];
-        if (invert ? val > 128 : val < 128) bits |= bit;
+        if (invert ? val > threshold : val < threshold) bits |= bit;
       }
       const r = Math.round(sumR / cnt), g = Math.round(sumG / cnt), b = Math.round(sumB / cnt);
       const ch = String.fromCodePoint(0x2800 + bits);
@@ -650,13 +688,16 @@ function renderBrailleANSI(gray, colors, w, h, invert) {
 }
 
 function renderBrailleHTML(gray, colors, w, h, invert) {
+  let sum = 0;
+  for (let i = 0; i < gray.length; i++) sum += gray[i];
+  const threshold = sum / gray.length;
   const charW = Math.floor(w / 2);
   const charH = Math.floor(h / 4);
   let html = `<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <style>
-  body { background: #111; font-family: "Courier New",Consolas,"Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols", monospace;
-         line-height: 1.2; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
+  body { background: #111; font-family: "Courier New","Source Code Pro","Consolas","Menlo","DejaVu Sans Mono","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace;
+         line-height: 1; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
 </style></head><body>
 `;
   for (let cy = 0; cy < charH; cy++) {
@@ -672,7 +713,7 @@ function renderBrailleHTML(gray, colors, w, h, invert) {
         const ci = pi * 3;
         sumR += colors[ci]; sumG += colors[ci + 1]; sumB += colors[ci + 2]; cnt++;
         const val = gray[pi];
-        if (invert ? val > 128 : val < 128) bits |= bit;
+        if (invert ? val > threshold : val < threshold) bits |= bit;
       }
       const r = Math.round(sumR / cnt), g = Math.round(sumG / cnt), b = Math.round(sumB / cnt);
       if (r !== lastR || g !== lastG || b !== lastB) {
@@ -746,11 +787,15 @@ function detectEdges(gray, w, h) {
 function processImage(image, targetWidth, style, contrast, invert, colorMode) {
   const aspect = image.height / image.width;
   const isBraille = style === 'braille';
+  const isEmoji = style === 'emoji';
 
   // Braille: each char covers 2×4 pixels → sample at 2× width
+  // Emoji: square pixels, no font-aspect compensation
   const sampleW = isBraille ? targetWidth * 2 : targetWidth;
   const sampleH = isBraille
     ? Math.floor(targetWidth * 2 * aspect)
+    : isEmoji
+    ? Math.floor(targetWidth * aspect)
     : Math.floor(targetWidth * aspect * 0.45);
   if (sampleH < 1) return { plain: '', width: 0, height: 0, gray: null, colors: null, chars: '' };
 
@@ -797,7 +842,7 @@ function processImage(image, targetWidth, style, contrast, invert, colorMode) {
   }
   gray = applyContrast(gray, contrast);
 
-  // Braille rendering path
+  // Braille rendering path — always build canvas data to avoid font segmentation
   if (isBraille) {
     const charW = Math.floor(sampleW / 2);
     const charH = Math.floor(sampleH / 4);
@@ -805,42 +850,64 @@ function processImage(image, targetWidth, style, contrast, invert, colorMode) {
 
     const plain = renderBraille(gray, sampleW, sampleH, invert);
 
-    let ansi = null, html = null, colors = null, charBits = null;
-    if (useColor) {
-      const colorData = extractColors(imageData);
-      applyColorContrast(colorData, contrast);
-      // Build per-character color/gray data for canvas rendering
-      charBits = new Uint8Array(charW * charH);
-      const charColors = new Uint8Array(charW * charH * 3);
-      for (let cy = 0; cy < charH; cy++) {
-        for (let cx = 0; cx < charW; cx++) {
-          let bits = 0, sumR = 0, sumG = 0, sumB = 0, cnt = 0;
-          for (const [dx, dy, bit] of BRAILLE_BITS) {
-            const px = cx * 2 + dx;
-            const py = cy * 4 + dy;
-            const pi = py * sampleW + px;
+    // Adaptive threshold from image mean brightness
+    let graySum = 0;
+    for (let i = 0; i < gray.length; i++) graySum += gray[i];
+    const brailleThreshold = graySum / gray.length;
+
+    // Always build per-character bit/color data for canvas
+    const charBits = new Uint8Array(charW * charH);
+    const charColors = new Uint8Array(charW * charH * 3);
+    const colorData = useColor ? extractColors(imageData) : null;
+    if (colorData) applyColorContrast(colorData, contrast);
+
+    for (let cy = 0; cy < charH; cy++) {
+      for (let cx = 0; cx < charW; cx++) {
+        let bits = 0, sumR = 0, sumG = 0, sumB = 0, cnt = 0;
+        for (const [dx, dy, bit] of BRAILLE_BITS) {
+          const px = cx * 2 + dx;
+          const py = cy * 4 + dy;
+          const pi = py * sampleW + px;
+          const val = gray[pi];
+          if (invert ? val > brailleThreshold : val < brailleThreshold) bits |= bit;
+          if (colorData) {
             const ci = pi * 3;
-            const val = gray[pi];
-            if (invert ? val > 128 : val < 128) bits |= bit;
             sumR += colorData[ci];
             sumG += colorData[ci + 1];
             sumB += colorData[ci + 2];
             cnt++;
           }
-          const i = cy * charW + cx;
-          charBits[i] = bits;
-          const ci3 = i * 3;
+        }
+        const i = cy * charW + cx;
+        charBits[i] = bits;
+        const ci3 = i * 3;
+        if (colorData) {
           charColors[ci3] = Math.round(sumR / cnt);
           charColors[ci3 + 1] = Math.round(sumG / cnt);
           charColors[ci3 + 2] = Math.round(sumB / cnt);
+        } else {
+          // Grayscale fallback: use 8-dot average brightness
+          let dotSum = 0;
+          for (const [dx, dy] of BRAILLE_BITS) {
+            const px = cx * 2 + dx;
+            const py = cy * 4 + dy;
+            dotSum += gray[py * sampleW + px];
+          }
+          const v = Math.round(dotSum / 8);
+          charColors[ci3] = v;
+          charColors[ci3 + 1] = v;
+          charColors[ci3 + 2] = v;
         }
       }
-      colors = charColors;
+    }
+
+    let ansi = null, html = null;
+    if (useColor) {
       ansi = renderBrailleANSI(gray, colorData, sampleW, sampleH, invert);
       html = renderBrailleHTML(gray, colorData, sampleW, sampleH, invert);
     }
 
-    return { plain, ansi, html, gray: charBits, colors, width: charW, height: charH, chars: '' };
+    return { plain, ansi, html, gray: charBits, colors: charColors, width: charW, height: charH, chars: '' };
   }
 
   // Normal rendering path
@@ -910,8 +977,8 @@ function renderHTML(gray, colors, w, h, chars) {
   let html = `<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <style>
-  body { background: #111; font-family: "Courier New",Consolas,"Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols", monospace;
-         line-height: 1.2; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
+  body { background: #111; font-family: "Courier New","Source Code Pro","Consolas","Menlo","DejaVu Sans Mono","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace;
+         line-height: 1; white-space: pre; margin: 16px; font-size: 6px; letter-spacing: 0; }
 </style></head><body>
 `;
   for (let y = 0; y < h; y++) {
@@ -940,7 +1007,7 @@ function renderHTML(gray, colors, w, h, chars) {
 // Canvas-based color rendering — character masks + ImageData
 
 function drawToCanvas(canvas, gray, colors, width, height, chars, zoomScale) {
-  const FONT = 'bold 16px "Courier New","Source Code Pro","Consolas","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace';
+  const FONT = 'bold 16px "Courier New","Source Code Pro","Consolas","Menlo","Droid Sans Mono","Noto Sans Mono","Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",monospace';
   const offC = document.createElement('canvas');
   const offX = offC.getContext('2d');
   offX.font = FONT;
@@ -1012,6 +1079,79 @@ function drawToCanvas(canvas, gray, colors, width, height, chars, zoomScale) {
   ctx.putImageData(imageData, 0, 0);
 
   // Set CSS display size — canvas is bitmap, CSS width/height scales uniformly
+  const z = zoomScale / 4;
+  canvas.style.width = Math.round(cw * z) + 'px';
+  canvas.style.height = Math.round(ch * z) + 'px';
+}
+
+// Emoji block canvas renderer — rounded 3D blocks with grid gaps, emoji mosaic effect
+function drawEmojiToCanvas(canvas, gray, colors, width, height, chars, zoomScale) {
+  const CELL = 14;
+  const GAP = 2;
+  const RADIUS = 3;
+
+  const cw = width * (CELL + GAP) + GAP;
+  const ch = height * (CELL + GAP) + GAP;
+  const ctx = canvas.getContext('2d');
+  canvas.width = cw;
+  canvas.height = ch;
+
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, cw, ch);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = y * width + x;
+      const ci = i * 3;
+      const r = colors[ci], g = colors[ci + 1], b = colors[ci + 2];
+      const px = x * (CELL + GAP) + GAP;
+      const py = y * (CELL + GAP) + GAP;
+
+      // Draw rounded rect with cell color
+      ctx.beginPath();
+      ctx.moveTo(px + RADIUS, py);
+      ctx.lineTo(px + CELL - RADIUS, py);
+      ctx.quadraticCurveTo(px + CELL, py, px + CELL, py + RADIUS);
+      ctx.lineTo(px + CELL, py + CELL - RADIUS);
+      ctx.quadraticCurveTo(px + CELL, py + CELL, px + CELL - RADIUS, py + CELL);
+      ctx.lineTo(px + RADIUS, py + CELL);
+      ctx.quadraticCurveTo(px, py + CELL, px, py + CELL - RADIUS);
+      ctx.lineTo(px, py + RADIUS);
+      ctx.quadraticCurveTo(px, py, px + RADIUS, py);
+      ctx.closePath();
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fill();
+
+      // Top-left highlight for 3D emoji look
+      const hl = Math.min(255, Math.round((r + g + b) / 3 * 0.45 + 60));
+      ctx.fillStyle = `rgba(${hl},${hl},${hl},0.35)`;
+      ctx.beginPath();
+      ctx.moveTo(px + RADIUS + 1, py + 2);
+      ctx.lineTo(px + CELL - RADIUS - 1, py + 2);
+      ctx.quadraticCurveTo(px + CELL - 2, py + 2, px + CELL - 2, py + RADIUS + 1);
+      ctx.lineTo(px + CELL - 2, py + CELL * 0.5);
+      ctx.lineTo(px + 2, py + CELL * 0.5);
+      ctx.lineTo(px + 2, py + RADIUS + 1);
+      ctx.quadraticCurveTo(px + 2, py + 2, px + RADIUS + 1, py + 2);
+      ctx.closePath();
+      ctx.fill();
+
+      // Bottom-right shadow for 3D emoji look
+      const sd = Math.max(0, Math.round((r + g + b) / 3 * 0.3));
+      ctx.fillStyle = `rgba(${sd},${sd},${sd},0.30)`;
+      ctx.beginPath();
+      ctx.moveTo(px + CELL - RADIUS - 1, py + CELL - 2);
+      ctx.lineTo(px + RADIUS + 1, py + CELL - 2);
+      ctx.quadraticCurveTo(px + 2, py + CELL - 2, px + 2, py + CELL - RADIUS - 1);
+      ctx.lineTo(px + 2, py + CELL * 0.5);
+      ctx.lineTo(px + CELL - 2, py + CELL * 0.5);
+      ctx.lineTo(px + CELL - 2, py + CELL - RADIUS - 1);
+      ctx.quadraticCurveTo(px + CELL - 2, py + CELL - 2, px + CELL - RADIUS - 1, py + CELL - 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
   const z = zoomScale / 4;
   canvas.style.width = Math.round(cw * z) + 'px';
   canvas.style.height = Math.round(ch * z) + 'px';
@@ -1098,6 +1238,7 @@ function drawBrailleToCanvas(canvas, bitsArray, colors, charW, charH, zoomScale)
 // ============================================================
 let currentImage = null;
 let currentStyle = 'classic';
+let currentZoom = 4; // tracked separately from slider for accurate oldVal
 let timer = 0;
 let lastResult = { plain: '', ansi: null, html: null, gray: null, colors: null, width: 0, height: 0, chars: '' };
 
@@ -1112,6 +1253,7 @@ const toast = $('toast');
 const copyBtn = $('copyBtn');
 const downloadBtn = $('downloadBtn');
 const colorBtns = $('colorBtns');
+const charCount = $('charCount');
 
 // Panel toggle
 $('panelToggle').addEventListener('click', () => {
@@ -1214,63 +1356,121 @@ $('contrastSlider').addEventListener('input', function() {
   $('contrastVal').textContent = parseFloat(this.value).toFixed(1);
   scheduleRefresh();
 });
-function applyZoom(val) {
-  const v = parseFloat(val).toFixed(1);
-  const vn = parseFloat(v);
-  $('fontVal').textContent = v + 'px';
-  // Save center ratio for zoom-to-center
+// Apply zoom: change font-size / canvas size + restore scroll anchor
+function applyZoom(val, anchorX, anchorY) {
+  const vn = parseFloat(parseFloat(val).toFixed(1));
+  $('fontVal').textContent = vn.toFixed(1) + 'px';
+  $('fontSlider').value = val;
+  currentZoom = vn;
+  zoomTarget = vn;
+  const useAnchor = anchorX != null && anchorY != null;
+  const ax = useAnchor ? anchorX : previewWrap.clientWidth / 2;
+  const ay = useAnchor ? anchorY : previewWrap.clientHeight / 2;
+  // Save scroll ratio before size change
   const sw = previewWrap.scrollWidth || 1;
   const sh = previewWrap.scrollHeight || 1;
-  const cw2 = previewWrap.clientWidth;
-  const ch2 = previewWrap.clientHeight;
-  const rx = (previewWrap.scrollLeft + cw2 / 2) / sw;
-  const ry = (previewWrap.scrollTop + ch2 / 2) / sh;
-  // Text mode: change font-size directly (layout-aware, no overflow)
+  const rx = (previewWrap.scrollLeft + ax) / sw;
+  const ry = (previewWrap.scrollTop + ay) / sh;
+  // Change size
   preview.style.fontSize = Math.max(1, vn) + 'px';
-  // Color mode: scale canvas display size
-  if ($('colorCheck').checked && lastResult.colors) {
-    const z = v / 4;
-    const cw = previewCanvas.width;
-    const ch = previewCanvas.height;
+  const isCanvasMode = $('colorCheck').checked || currentStyle === 'braille' || currentStyle === 'emoji';
+  if (isCanvasMode && lastResult.colors) {
+    const z = vn / 4;
+    const cw = previewCanvas.width, ch = previewCanvas.height;
     if (cw && ch) {
       previewCanvas.style.width = Math.round(cw * z) + 'px';
       previewCanvas.style.height = Math.round(ch * z) + 'px';
     }
   }
-  // Dynamic padding: stronger for color mode (canvas), milder for text mode (pre)
+  // Dynamic padding
   const isMobile = window.innerWidth <= 768;
   const basePad = isMobile ? 16 : 32;
-  const colorMode = $('colorCheck').checked && !!lastResult.colors;
-  const scale = colorMode ? (isMobile ? 5 : 10) : (isMobile ? 3 : 6);
-  const extra = Math.max(0, Math.round(Math.pow(Math.max(0, vn - (colorMode ? 3 : 4)), colorMode ? 1.8 : 1.5) * scale));
-  // Disable padding transition during zoom — instant response, no animation lag
+  const padScale = isCanvasMode ? (isMobile ? 5 : 10) : (isMobile ? 3 : 6);
+  const extra = Math.max(0, Math.round(Math.pow(Math.max(0, vn - (isCanvasMode ? 3 : 4)), isCanvasMode ? 1.8 : 1.5) * padScale));
   previewWrap.style.transition = 'none';
   previewWrap.style.padding = (basePad + extra) + 'px';
-  // Force synchronous layout read → browser computes new size immediately, no paint gap
-  let nsw = previewWrap.scrollWidth || 1;
-  let nsh = previewWrap.scrollHeight || 1;
-  previewWrap.scrollLeft = Math.max(0, rx * nsw - previewWrap.clientWidth / 2);
-  previewWrap.scrollTop = Math.max(0, ry * nsh - previewWrap.clientHeight / 2);
+  // Restore scroll anchor after layout
+  const nsw = previewWrap.scrollWidth || 1;
+  const nsh = previewWrap.scrollHeight || 1;
+  previewWrap.scrollLeft = Math.max(0, rx * nsw - ax);
+  previewWrap.scrollTop = Math.max(0, ry * nsh - ay);
   updateGrabCursor(); updateContentAlignment();
-  // updateContentAlignment may change padding → re-snap center
-  nsw = previewWrap.scrollWidth || 1;
-  nsh = previewWrap.scrollHeight || 1;
-  previewWrap.scrollLeft = Math.max(0, rx * nsw - previewWrap.clientWidth / 2);
-  previewWrap.scrollTop = Math.max(0, ry * nsh - previewWrap.clientHeight / 2);
-  // Re-enable padding transition for smooth toolbar-toggle centering
+  // Re-snap after alignment (padding may shift viewport)
+  const nsw2 = previewWrap.scrollWidth || 1;
+  const nsh2 = previewWrap.scrollHeight || 1;
+  const rx2 = (previewWrap.scrollLeft + ax) / nsw2;
+  const ry2 = (previewWrap.scrollTop + ay) / nsh2;
+  previewWrap.scrollLeft = Math.max(0, rx2 * nsw2 - ax);
+  previewWrap.scrollTop = Math.max(0, ry2 * nsh2 - ay);
   previewWrap.style.transition = '';
 }
 $('fontSlider').addEventListener('input', function() { applyZoom(this.value); });
 $('normalCheck').addEventListener('change', refresh);
+
+// Smooth zoom: exponential decay toward a running target — each wheel/pinch
+// event adds a delta to zoomTarget; the rAF loop continuously lerps toward
+// the latest target. No time tracking needed, so target updates mid-animation
+// are handled naturally without any jumps.
+let zoomAnimId = 0;
+let zoomTarget = currentZoom;
+let zoomAnchorX = 0;
+let zoomAnchorY = 0;
+
+function smoothZoomTo(delta, anchorX, anchorY) {
+  zoomTarget = Math.max(0.5, Math.min(14, zoomTarget + delta));
+  const useAnchor = anchorX != null && anchorY != null;
+  zoomAnchorX = useAnchor ? anchorX : previewWrap.clientWidth / 2;
+  zoomAnchorY = useAnchor ? anchorY : previewWrap.clientHeight / 2;
+  if (zoomAnimId) return; // already looping, target and anchor updated in-place
+
+  const isCanvasMode = $('colorCheck').checked || currentStyle === 'braille' || currentStyle === 'emoji';
+  function step() {
+    // Lerp toward target — factor 0.30 reaches 95%+ of target within ~10 frames
+    const cur = currentZoom + (zoomTarget - currentZoom) * 0.30;
+    if (Math.abs(zoomTarget - cur) < 0.005) {
+      applyZoom(zoomTarget, zoomAnchorX, zoomAnchorY);
+      zoomAnimId = 0;
+      updateGrabCursor();
+      return;
+    }
+    $('fontVal').textContent = cur.toFixed(1) + 'px';
+    $('fontSlider').value = cur;
+    currentZoom = cur;
+    // Ratio anchor from current real layout
+    const sw = previewWrap.scrollWidth || 1;
+    const sh = previewWrap.scrollHeight || 1;
+    const rx = (previewWrap.scrollLeft + zoomAnchorX) / sw;
+    const ry = (previewWrap.scrollTop + zoomAnchorY) / sh;
+    preview.style.fontSize = Math.max(1, cur) + 'px';
+    if (isCanvasMode) {
+      const z = cur / 4;
+      const cw = previewCanvas.width, ch = previewCanvas.height;
+      if (cw && ch) {
+        previewCanvas.style.width = Math.round(cw * z) + 'px';
+        previewCanvas.style.height = Math.round(ch * z) + 'px';
+      }
+    }
+    const nsw = previewWrap.scrollWidth || 1;
+    const nsh = previewWrap.scrollHeight || 1;
+    previewWrap.scrollLeft = Math.max(0, rx * nsw - zoomAnchorX);
+    previewWrap.scrollTop = Math.max(0, ry * nsh - zoomAnchorY);
+    zoomAnimId = requestAnimationFrame(step);
+  }
+  zoomAnimId = requestAnimationFrame(step);
+}
+
 let normalZoom = 4; // saved zoom for restoring after color mode
 $('colorCheck').addEventListener('change', function() {
-  if (this.checked) {
-    normalZoom = parseFloat($('fontSlider').value);
-    $('fontSlider').value = 2;
-    applyZoom(2);
-  } else {
-    $('fontSlider').value = normalZoom;
-    applyZoom(normalZoom);
+  const skipZoom = currentStyle === 'braille' || currentStyle === 'emoji';
+  if (!skipZoom) {
+    if (this.checked) {
+      normalZoom = parseFloat($('fontSlider').value);
+      $('fontSlider').value = 2;
+      applyZoom(2);
+    } else {
+      $('fontSlider').value = normalZoom;
+      applyZoom(normalZoom);
+    }
   }
   refresh();
 });
@@ -1310,12 +1510,19 @@ function updateTip(width, height, colorMode) {
   }
 }
 
+function updateCharCount() {
+  const count = lastResult.plain ? lastResult.plain.replace(/\n/g, '').length : 0;
+  const text = count.toLocaleString() + t('charCount');
+  charCount.textContent = text;
+}
+
 function refresh() {
   if (!currentImage) {
     preview.style.display = 'none';
     previewCanvas.style.display = 'none';
     $('canvasWrap').style.display = 'none';
     previewPlaceholder.style.display = '';
+    charCount.textContent = '';
     previewPlaceholder.textContent = t('previewPlaceholder');
     return;
   }
@@ -1325,25 +1532,46 @@ function refresh() {
   const colorMode = $('colorCheck').checked;
 
   lastResult = processImage(currentImage, width, currentStyle, contrast, invert, colorMode);
-  updateTip(lastResult.width, lastResult.height, colorMode && !!lastResult.colors);
+  const forceCanvas = currentStyle === 'braille' || currentStyle === 'emoji';
+  updateTip(lastResult.width, lastResult.height, (colorMode || forceCanvas) && !!lastResult.colors);
+  updateCharCount();
   setTimeout(() => { updateGrabCursor(); updateContentAlignment(); }, 80); // wait for layout to settle
 
-  if (colorMode && lastResult.colors) {
+  // Styles that always render to canvas (avoid font segmentation/alignment issues)
+  const useCanvas = colorMode || forceCanvas;
+
+  // Build grayscale colors for emoji style when not in color mode
+  let renderColors = lastResult.colors;
+  if (!renderColors && forceCanvas && lastResult.gray) {
+    const n = lastResult.width * lastResult.height;
+    renderColors = new Uint8Array(n * 3);
+    for (let i = 0; i < lastResult.gray.length; i++) {
+      const v = lastResult.gray[i];
+      renderColors[i * 3] = v;
+      renderColors[i * 3 + 1] = v;
+      renderColors[i * 3 + 2] = v;
+    }
+  }
+
+  if (useCanvas && renderColors) {
     const zoom = parseFloat($('fontSlider').value);
     if (currentStyle === 'braille') {
-      drawBrailleToCanvas(previewCanvas, lastResult.gray, lastResult.colors,
+      drawBrailleToCanvas(previewCanvas, lastResult.gray, renderColors,
                    lastResult.width, lastResult.height, zoom);
+    } else if (currentStyle === 'emoji') {
+      drawEmojiToCanvas(previewCanvas, lastResult.gray, renderColors,
+                   lastResult.width, lastResult.height, lastResult.chars, zoom);
     } else {
-      drawToCanvas(previewCanvas, lastResult.gray, lastResult.colors,
+      drawToCanvas(previewCanvas, lastResult.gray, renderColors,
                    lastResult.width, lastResult.height, lastResult.chars, zoom);
     }
     preview.style.display = 'none';
     previewPlaceholder.style.display = 'none';
     $('canvasWrap').style.display = '';
     previewCanvas.style.display = '';
-    colorBtns.style.display = 'flex';
-    copyBtn.textContent = t('copyText');
-    downloadBtn.textContent = t('downloadTxt');
+    colorBtns.style.display = colorMode ? 'flex' : 'none';
+    copyBtn.textContent = colorMode ? t('copyText') : t('copyBtn');
+    downloadBtn.textContent = colorMode ? t('downloadTxt') : t('downloadBtn');
   } else {
     // Non-color mode: use <pre> (single DOM update, instant)
     preview.textContent = lastResult.plain || t('previewPlaceholder');
@@ -1411,6 +1639,7 @@ $('resetBtn').addEventListener('click', () => {
   $('widthSlider').value = 120;
   $('contrastSlider').value = 2;
   $('fontSlider').value = 4;
+  currentZoom = 4;
   $('normalCheck').checked = false;
   $('colorCheck').checked = false;
   $('widthVal').textContent = '120';
@@ -1424,6 +1653,7 @@ $('resetBtn').addEventListener('click', () => {
   previewCanvas.style.display = 'none';
   copyBtn.textContent = t('copyBtn');
   downloadBtn.textContent = t('downloadBtn');
+  charCount.textContent = '';
   document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.style-btn[data-style="classic"]').classList.add('active');
   currentStyle = 'classic';
@@ -1559,12 +1789,11 @@ window.addEventListener('resize', () => { updateGrabCursor(); updateContentAlign
 // Wheel zoom on preview area
 previewWrap.addEventListener('wheel', (e) => {
   e.preventDefault();
-  const slider = $('fontSlider');
+  const rect = previewWrap.getBoundingClientRect();
+  const ax = e.clientX - rect.left;
+  const ay = e.clientY - rect.top;
   const delta = -Math.sign(e.deltaY) * 0.5;
-  const newVal = Math.max(0.5, Math.min(14, parseFloat(slider.value) + delta));
-  slider.value = newVal;
-  applyZoom(newVal);
-  updateGrabCursor();
+  smoothZoomTo(delta, ax, ay);
 }, { passive: false });
 
 // Touch: single-finger pan with spring overscroll + two-finger pinch zoom
@@ -1615,10 +1844,10 @@ previewWrap.addEventListener('touchmove', (e) => {
     );
     const delta = (dist - lastPinchDist) / 60;
     if (Math.abs(delta) > 0.1) {
-      const slider = $('fontSlider');
-      const newVal = Math.max(0.5, Math.min(14, parseFloat(slider.value) + delta));
-      slider.value = newVal;
-      applyZoom(newVal);
+      const rect = previewWrap.getBoundingClientRect();
+      const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+      const my = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+      smoothZoomTo(delta, mx, my);
       lastPinchDist = dist;
     }
   }
